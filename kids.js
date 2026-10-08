@@ -128,9 +128,12 @@ function home(){
   root.innerHTML =
     '<div class="k-hero"><div><b>مرحبًا يا بطل!</b><span>Hello, superstar!</span></div><span class="k-starpill big">⭐ <b data-kstars>'+K.stars+'</b></span></div>'+
     '<div class="k-shelf-wrap"><div class="k-label">ملصقاتي · '+(K.stickers<STICKERS.length?'باقي '+toNext+' نجوم للملصق التالي':'جمعت كل الملصقات!')+'</div><div class="k-shelf">'+shelf+'</div></div>'+
+    '<h3 class="k-sec">الكلمات والحروف</h3>'+
     '<div class="k-grid">'+GAMES.map(g=>'<button class="k-tile '+g.c+'" data-g="'+g.k+'"><span class="k-ico">'+g.icon+'</span><b>'+g.ar+'</b><span>'+g.en+'</span></button>').join('')+'</div>'+
+    (window.KIDS_EXTRA||[]).map(sec=>'<h3 class="k-sec">'+sec.title+'</h3><div class="k-grid">'+sec.games.map(g=>'<button class="k-tile '+g.c+'" data-x="'+g.k+'"><span class="k-ico">'+g.icon+'</span><b>'+g.ar+'</b><span>'+g.en+'</span></button>').join('')+'</div>').join('')+
     '<p class="k-note">كل الألعاب تعمل دون إنترنت ودون مفتاح، ولا يتحدث الطفل مع الذكاء الاصطناعي.</p>';
   root.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>GAMES.find(g=>g.k===b.dataset.g).run());
+  root.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>(window.KIDS_EXTRA||[]).flatMap(s=>s.games).find(g=>g.k===b.dataset.x).run());
 }
 function chooseCat(title, game){
   const body=screen(title,'اختر موضوعًا');
@@ -321,5 +324,7 @@ function finish(body, score, total, again, extra){
 }
 
 window.kidsHome = home;
+window.KidsAPI = {screen, home, cheer, oops, addStars, finish, say, sayAr, shuffle, pick, rnd, tone, esc, setCleanup:f=>{cleanup=f;},
+  refresh:()=>{ if(root.querySelector('.k-hero')) home(); }};
 home();
 })();
