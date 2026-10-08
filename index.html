@@ -224,24 +224,32 @@ nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-sof
     <section class="view set" id="v-set" hidden>
       <div class="card">
         <h2>مفتاح الدردشة الذكية</h2>
-        <ol>
+        <label class="label" for="provider">مزوّد الذكاء الاصطناعي</label>
+        <select id="provider">
+          <option value="gemini">Google Gemini (مجاني)</option>
+          <option value="claude">Anthropic Claude (مدفوع حسب الاستخدام)</option>
+        </select>
+        <ol id="steps-gemini">
+          <li>ادخل <b dir="ltr">aistudio.google.com</b> بحساب Google.</li>
+          <li>اضغط <b>Get API key</b> ثم <b>Create API key</b>.</li>
+          <li>انسخ المفتاح (يبدأ بـ <b dir="ltr">AIza</b>).</li>
+          <li>الصقه هنا واضغط «حفظ وتجربة».</li>
+        </ol>
+        <ol id="steps-claude" hidden>
           <li>ادخل <b dir="ltr">console.anthropic.com</b> وسجّل الدخول.</li>
           <li>من <b>Billing</b> أضف رصيدًا.</li>
           <li>من <b>API Keys</b> اضغط <b>Create Key</b> وانسخه.</li>
           <li>الصقه هنا واضغط «حفظ وتجربة».</li>
         </ol>
-        <input class="field" id="key" type="password" placeholder="sk-ant-…" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <input class="field" id="key" type="password" placeholder="AIza…" autocomplete="off" autocapitalize="off" spellcheck="false">
         <div class="actions"><button class="btn" id="save-key">حفظ وتجربة</button><button class="btn ghost" id="show-key">إظهار</button></div>
         <div class="status" id="key-status"></div>
-        <div class="hint" style="text-align:start">يُحفظ المفتاح على هذا الجوال فقط، ويُرسل مباشرة إلى Anthropic عند كل رسالة.</div>
+        <div class="hint" style="text-align:start">يُحفظ المفتاح على هذا الجوال فقط، ويُرسل مباشرة إلى المزوّد الذي اخترته عند كل رسالة.</div>
       </div>
       <div class="card">
         <h2>Sam</h2>
         <label class="label" for="model">مستوى الذكاء</label>
-        <select id="model">
-          <option value="claude-haiku-5-5">سريع واقتصادي (Haiku)</option>
-          <option value="claude-sonnet-5-5">أذكى وأدق (Sonnet)</option>
-        </select>
+        <select id="model"></select>
         <label class="label" for="voice">صوت Sam</label>
         <select id="voice"></select>
         <label class="label" for="rate-sl">سرعة الكلام</label>
@@ -277,7 +285,13 @@ const store = {
 };
 
 /* ---------- settings ---------- */
-const S = Object.assign({key:'', model:'claude-haiku-5-5', voice:'', rate:0.95, auto:true, level:'mid'}, store.get('talkie-settings', {}));
+const S = Object.assign({provider:'gemini', key:'', gkey:'', model:'claude-haiku-5-5', gmodel:'gemini-flash-latest', voice:'', rate:0.95, auto:true, level:'mid'}, store.get('talkie-settings', {}));
+const MODELS = {
+  gemini: [['gemini-flash-latest','Gemini Flash (مجاني)'],['gemini-3.5-flash-lite','Gemini Flash Lite (أسرع، مجاني)']],
+  claude: [['claude-haiku-5-5','سريع واقتصادي (Haiku)'],['claude-sonnet-5-5','أذكى وأدق (Sonnet)']]
+};
+const curKey = () => S.provider==='gemini' ? S.gkey : S.key;
+const hasKey = () => !!curKey();
 const saveS = () => store.set('talkie-settings', S);
 
 /* ---------- progress ---------- */
@@ -362,7 +376,8 @@ function listen({btn, continuous=false, onText, onEnd, quiet=false}){
 
 /* ---------- Claude API ---------- */
 async function askClaude(prompt, maxTokens=500){
-  if(!S.key) throw {code:'nokey'};
+  if(!hasKey()) throw {code:'nokey'};
+  if(S.provider==='gemini') return askGemini(prompt, maxTokens);
   let res;
   try{
     res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -378,14 +393,46 @@ async function askClaude(prompt, maxTokens=500){
   if(a<0||b<a) throw {code:'json'};
   try{ return JSON.parse(text.slice(a,b+1)); }catch(e){ throw {code:'json'}; }
 }
+function parseJSON(text){
+  const a=text.indexOf('{'), b=text.lastIndexOf('}');
+  if(a<0||b<a) throw {code:'json'};
+  try{ return JSON.parse(text.slice(a,b+1)); }catch(e){ throw {code:'json'}; }
+}
+async function askGemini(prompt, maxTokens, model){
+  model = model || S.gmodel;
+  let res;
+  try{
+    res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent', {
+      method:'POST',
+      headers:{'content-type':'application/json','x-goog-api-key':S.gkey},
+      body: JSON.stringify({contents:[{role:'user', parts:[{text:prompt}]}],
+        generationConfig:{responseMimeType:'application/json', maxOutputTokens: Math.max(2048, maxTokens*4), temperature:0.8}})
+    });
+  }catch(e){ throw {code:'net'}; }
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok){
+    // the "latest" alias can disappear; fall back to a named free model once
+    if(res.status===404 && model!=='gemini-3.5-flash') return askGemini(prompt, maxTokens, 'gemini-3.5-flash');
+    const msg=(data?.error?.message||'')+' '+(data?.error?.status||'');
+    throw {code: /API_KEY_INVALID|API key not valid/i.test(msg) ? 401 : res.status, msg};
+  }
+  const parts = data?.candidates?.[0]?.content?.parts || [];
+  const text = parts.filter(p=>!p.thought && p.text).map(p=>p.text).join('');
+  if(!text) throw {code: data?.promptFeedback?.blockReason ? 'blocked' : 'json'};
+  return parseJSON(text);
+}
 function errText(e){
   const c=e&&e.code, m=(e&&e.msg||'').toLowerCase();
   if(c==='nokey') return 'أضف مفتاح API من الإعدادات (رمز الترس) لتفعيل Sam.';
   if(c==='net') return 'لا يوجد اتصال بالإنترنت. تحقق من الشبكة ثم حاول مرة أخرى.';
-  if(c===401) return 'مفتاح API غير صحيح. انسخه من جديد من console.anthropic.com.';
+  if(c===401) return 'مفتاح API غير صحيح. انسخه من جديد وألصقه في الإعدادات.';
+  if(c==='blocked') return 'رفض المزوّد هذا الطلب. جرّب صياغة أخرى.';
+  if(c===429 && S.provider==='gemini') return 'وصلت إلى حد الاستخدام المجاني المؤقت. انتظر دقيقة، أو جرّب غدًا إذا انتهى حد اليوم.';
+  if(c===400 && /location|region|not supported/i.test(m)) return 'الخدمة المجانية غير متاحة من منطقتك. جرّب مزوّدًا آخر من الإعدادات.';
   if(c===403) return 'المفتاح لا يملك صلاحية. أنشئ مفتاحًا جديدًا.';
   if(m.includes('credit')) return 'الرصيد غير كافٍ. أضف رصيدًا من Billing في console.anthropic.com.';
   if(c===404||m.includes('model')) return 'النموذج المختار غير متاح لحسابك. غيّر «مستوى الذكاء» من الإعدادات.';
+  if(c===403) return 'المفتاح لا يملك صلاحية. أنشئ مفتاحًا جديدًا.';
   if(c===429) return 'طلبات كثيرة في وقت قصير. انتظر دقيقة ثم حاول.';
   if(c===529||c>=500) return 'الخدمة مشغولة الآن. حاول بعد قليل.';
   if(c==='json') return 'وصل رد غير مكتمل. حاول مرة أخرى.';
@@ -416,7 +463,7 @@ function resetChat(){
   stopListening(true); if(TTS) speechSynthesis.cancel();
   turns=[]; const log=$('#log'); log.innerHTML='';
   const e=document.createElement('div'); e.className='empty';
-  if(!S.key){
+  if(!hasKey()){
     e.innerHTML='<strong>فعّل Sam أولًا</strong>أضف مفتاح API من الإعدادات لتبدأ المحادثة الصوتية.<div style="margin-top:12px"><button class="btn" id="to-set">فتح الإعدادات</button></div>';
     log.append(e); $('#to-set').onclick=()=>show('set'); return;
   }
@@ -464,12 +511,12 @@ async function ask(opening){
     const reply=String(r.reply||'Sorry, could you say that again?');
     turns.push({who:'Sam',text:reply}); if(turns.length>24) turns=turns.slice(-24);
     bubble('Sam', reply);
-    speak(reply, null, ()=>{ if(S.auto && current==='chat' && !document.hidden && S.key) chatListen(true); });
+    speak(reply, null, ()=>{ if(S.auto && current==='chat' && !document.hidden && hasKey()) chatListen(true); });
   }catch(e){ wait.className='notice'; wait.textContent=errText(e); }
   finally{ busy=false; $('#send').disabled=false; scrollDown(); }
 }
 function send(){ const t=$('#say'); const v=t.value.trim(); if(!v||busy) return;
-  if(!S.key){ toast('أضف مفتاح API من الإعدادات أولًا.'); return; }
+  if(!hasKey()){ toast('أضف مفتاح API من الإعدادات أولًا.'); return; }
   turns.push({who:'Learner',text:v}); bubble('Me', v); t.value=''; autosize(); ask(false); }
 function autosize(){ const t=$('#say'); t.style.height='auto'; t.style.height=Math.min(120,t.scrollHeight)+'px'; }
 function chatListen(quiet){
@@ -551,14 +598,14 @@ $('#go').onclick=()=>{
   talkBase=$('#talk').value.trim();
   $('#go').textContent='إيقاف'; topicListen();
   tmr=setInterval(()=>{ left--; drawClock();
-    if(left<=0){ stopTopic(); award(15,'One minute!'); setTimeout(()=>{ if($('#talk').value.trim().split(/\s+/).length>=5 && S.key) rate(); }, 900); } },1000);
+    if(left<=0){ stopTopic(); award(15,'One minute!'); setTimeout(()=>{ if($('#talk').value.trim().split(/\s+/).length>=5 && hasKey()) rate(); }, 900); } },1000);
 };
 $('#spin').onclick=spin;
 $('#topic').onclick=()=>speak($('#topic').textContent);
 async function rate(){
   const txt=$('#talk').value.trim(); const fb=$('#fb');
   if(txt.split(/\s+/).length<5){ fb.innerHTML='<div class="hint">تكلم جملتين على الأقل ليقيّمهما Sam.</div>'; return; }
-  if(!S.key){ fb.innerHTML='<div class="notice">'+errText({code:'nokey'})+'</div>'; return; }
+  if(!hasKey()){ fb.innerHTML='<div class="notice">'+errText({code:'nokey'})+'</div>'; return; }
   $('#rate').disabled=true; fb.innerHTML='<span class="typing"><i></i><i></i><i></i></span>';
   try{
     const r=await askClaude(`You are a kind, precise English speaking coach. An adult Arabic speaker (level: ${LV[S.level]}) spoke for one minute on the topic "${TOPICS[topicIdx][0]}". Below is a speech-recognition transcript, so ignore punctuation and capitalization and do not count obvious recognition glitches as errors.
@@ -586,12 +633,22 @@ Reply with ONLY JSON:
 $('#rate').onclick=rate;
 
 /* ---------- SETTINGS ---------- */
-$('#key').value=S.key; $('#model').value=S.model; $('#rate-sl').value=S.rate;
-if(!$('#model').value){ $('#model').value='claude-haiku-5-5'; S.model='claude-haiku-5-5'; }
+function paintProvider(){
+  const g=S.provider==='gemini';
+  $('#provider').value=S.provider;
+  $('#steps-gemini').hidden=!g; $('#steps-claude').hidden=g;
+  $('#key').value=curKey(); $('#key').placeholder = g ? 'AIza…' : 'sk-ant-…';
+  $('#model').innerHTML=MODELS[S.provider].map(([v,n])=>'<option value="'+v+'">'+n+'</option>').join('');
+  $('#model').value = g ? S.gmodel : S.model;
+  if(!$('#model').value){ $('#model').value=MODELS[S.provider][0][0]; }
+  $('#key-status').textContent='';
+}
+paintProvider(); $('#rate-sl').value=S.rate;
+$('#provider').onchange=()=>{ S.provider=$('#provider').value; saveS(); paintProvider(); resetChat(); };
 $('#show-key').onclick=()=>{ const k=$('#key'); k.type = k.type==='password'?'text':'password'; $('#show-key').textContent = k.type==='password'?'إظهار':'إخفاء'; };
 $('#save-key').onclick=async()=>{
-  S.key=$('#key').value.trim(); saveS(); const st=$('#key-status');
-  if(!S.key){ st.className='status err'; st.textContent='الصق المفتاح أولًا.'; return; }
+  const k=$('#key').value.trim(); if(S.provider==='gemini') S.gkey=k; else S.key=k; saveS(); const st=$('#key-status');
+  if(!k){ st.className='status err'; st.textContent='الصق المفتاح أولًا.'; return; }
   st.className='status'; st.textContent='جارٍ التجربة…'; $('#save-key').disabled=true;
   try{ const r=await askClaude('Reply with only this JSON: {"ok": true}', 20);
     st.className='status ok'; st.textContent = r.ok ? 'يعمل! Sam جاهز للمحادثة.' : 'يعمل.';
@@ -599,7 +656,7 @@ $('#save-key').onclick=async()=>{
   }catch(e){ st.className='status err'; st.textContent=errText(e); }
   finally{ $('#save-key').disabled=false; }
 };
-$('#model').onchange=()=>{ S.model=$('#model').value; saveS(); };
+$('#model').onchange=()=>{ if(S.provider==='gemini') S.gmodel=$('#model').value; else S.model=$('#model').value; saveS(); };
 $('#voice').onchange=()=>{ S.voice=$('#voice').value; saveS(); };
 $('#rate-sl').oninput=()=>{ S.rate=Number($('#rate-sl').value); saveS(); };
 $('#test-voice').onclick=()=>speak("Hi, I'm Sam. Let's practice English together!");
@@ -623,7 +680,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden){ stopList
 if(!SR) $('#chat-hint').textContent='هذا المتصفح لا يدعم الميكروفون. افتح التطبيق في Safari (iPhone) أو Chrome (Android).';
 
 buildScenes(); resetChat(); newDeck(); spin();
-show(S.key ? 'chat' : 'set');
+show(hasKey() ? 'chat' : 'set');
 
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 </script>
