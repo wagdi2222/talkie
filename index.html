@@ -20,6 +20,7 @@
   --bg:#EAF0F8; --surface:#FFFFFF; --surface-2:#F4F7FC; --ink:#0F1B2D; --muted:#5B6B84; --line:#D5DEEB;
   --accent:#2952E3; --accent-ink:#FFFFFF; --accent-soft:#DDE6FF; --sun:#FFC53D; --sun-ink:#3A2A00;
   --good:#12925E; --good-soft:#D9F3E7; --bad:#D2433A; --bad-soft:#FBE2DF;
+  --k1:#FFE07A; --k2:#FFB8C9; --k3:#A9E5C4; --k4:#A9C8FF; --k5:#D8BFFF; --k6:#FFC59E; --kink:#2A1E3D; --sky:#CFE6FF;
   --display:"Baloo Bhaijaan 2","Readex Pro",system-ui,sans-serif;
   --body:"Readex Pro",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
   color-scheme:light;
@@ -27,7 +28,8 @@
 @media (prefers-color-scheme:dark){:root{
   --bg:#0B1220; --surface:#141D30; --surface-2:#1B263D; --ink:#E7EDF7; --muted:#97A6BF; --line:#27344D;
   --accent:#7D9BFF; --accent-ink:#0B1220; --accent-soft:#1F2D55; --sun:#FFD15C; --sun-ink:#2A1E00;
-  --good:#4CD39A; --good-soft:#123A2A; --bad:#FF8379; --bad-soft:#40201E; color-scheme:dark}}
+  --good:#4CD39A; --good-soft:#123A2A; --bad:#FF8379; --bad-soft:#40201E;
+  --k1:#5C4A12; --k2:#5A2636; --k3:#1E4A35; --k4:#1E3560; --k5:#3D2A63; --k6:#5A3418; --kink:#F4EEFF; --sky:#13284A; color-scheme:dark}}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
@@ -126,7 +128,7 @@ input.field{width:100%;direction:ltr}
 .range{display:flex;align-items:center;gap:10px}
 .range input{flex:1;accent-color:var(--accent)}
 /* tabs */
-nav{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
 nav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;color:var(--muted);font-size:.78rem;font-weight:500;border-radius:12px}
 nav button svg{width:22px;height:22px}
 nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
@@ -136,6 +138,102 @@ nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-sof
 .typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:dot 1s infinite}
 .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
 @keyframes dot{50%{transform:translateY(-4px);opacity:.4}}
+
+/* ---------- kids world ---------- */
+#kids{display:flex;flex-direction:column;gap:14px;font-family:var(--display)}
+.k-hero{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--k4);color:var(--kink);border-radius:24px;padding:16px 18px}
+.k-hero b{display:block;font-size:1.5rem;line-height:1.2}
+.k-hero span{direction:ltr;display:block;font-family:var(--body);font-size:.9rem;opacity:.8}
+.k-starpill{background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 12px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.k-starpill.big{font-size:1.25rem;padding:6px 16px}
+.k-label{font-size:.82rem;color:var(--muted);font-family:var(--body);font-weight:600;margin-bottom:6px}
+.k-shelf{display:flex;gap:8px;flex-wrap:wrap}
+.k-shelf span{width:46px;height:46px;border-radius:14px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;font-size:1.6rem}
+.k-shelf .k-lock{color:var(--muted);font-size:1.2rem;border-style:dashed}
+.k-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.k-tile{border:0;border-radius:24px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--kink);font-family:var(--display);transition:transform .15s;min-height:128px;justify-content:center}
+.k-tile:active{transform:scale(.95)}
+.k-tile .k-ico{font-size:2.6rem;line-height:1.1}
+.k-tile b{font-size:1.15rem}
+.k-tile span:last-child{font-family:var(--body);font-size:.8rem;opacity:.75;direction:ltr}
+.k1{background:var(--k1)}.k2{background:var(--k2)}.k3{background:var(--k3)}.k4{background:var(--k4)}.k5{background:var(--k5)}.k6{background:var(--k6)}
+.k-note{font-family:var(--body);font-size:.8rem;color:var(--muted);text-align:center;margin:0}
+.k-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.k-back{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-family:var(--body);font-weight:600;font-size:.88rem}
+.k-title{text-align:center;flex:1;min-width:0}
+.k-title b{display:block;font-size:1.25rem;line-height:1.2}
+.k-title span{font-family:var(--body);font-size:.8rem;color:var(--muted)}
+.k-body{display:flex;flex-direction:column;gap:14px}
+.k-btn{border:0;border-radius:18px;padding:12px 18px;font-family:var(--display);font-weight:800;font-size:1.05rem;background:var(--accent);color:var(--accent-ink)}
+.k-btn.ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line)}
+.k-btn.big{font-size:1.2rem;padding:12px 22px}
+.k-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.k-card{border:0;background:var(--surface);border:2px solid var(--line);border-radius:28px;padding:22px 16px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink);width:100%}
+.k-emo{line-height:1}.k-emo.xl{font-size:6.5rem}.k-emo.lg{font-size:3.4rem}.k-emo.md{font-size:2.4rem}
+.k-sw{display:inline-block;border-radius:50%;border:3px solid var(--line);vertical-align:middle}
+.k-sw.xl{width:120px;height:120px}.k-sw.lg{width:64px;height:64px}.k-sw.md{width:44px;height:44px}.k-sw.sm{width:22px;height:22px;border-width:2px}
+.k-num{font-family:var(--display);font-weight:800;line-height:1;color:var(--accent)}
+.k-num.xl{font-size:7rem}.k-num.lg{font-size:3.6rem}.k-num.md{font-size:2.4rem}
+.k-word{direction:ltr;font-size:2.2rem;font-weight:800;line-height:1.2}
+.k-ar{font-family:var(--body);font-size:1.05rem;color:var(--muted);text-align:center}
+.k-dots,.k-hint{text-align:center;font-family:var(--body);color:var(--muted);font-size:.9rem;margin:0}
+.k-ask{display:flex;align-items:center;justify-content:center;gap:12px}
+.k-goaltxt{font-size:1.6rem;direction:ltr;display:flex;align-items:center;gap:8px}
+.k-choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.k-choice{border:2.5px solid var(--line);background:var(--surface);border-radius:24px;aspect-ratio:1;max-width:100%;display:grid;place-items:center}
+.k-right{border-color:var(--good);background:var(--good-soft)}
+.k-shake{animation:shake .45s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.k-progress{display:flex;gap:6px;justify-content:center}
+.k-progress i{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.k-progress i.done{background:var(--sun)}
+.k-letter{background:var(--surface);border:2px solid var(--line);border-radius:28px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.k-pair{display:flex;align-items:center;gap:22px;direction:ltr}
+.k-L{font-size:5.5rem;line-height:1;color:var(--accent)}
+.k-L small{font-size:3.2rem;color:var(--muted);margin-left:6px}
+.k-abc{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;direction:ltr}
+.k-abc button{border:0;border-radius:14px;aspect-ratio:1;font-family:var(--display);font-weight:800;font-size:1.35rem;background:var(--surface);border:1.5px solid var(--line);color:var(--ink)}
+.k-abc button:nth-child(6n+1){background:var(--k1)}.k-abc button:nth-child(6n+2){background:var(--k2)}.k-abc button:nth-child(6n+3){background:var(--k3)}
+.k-abc button:nth-child(6n+4){background:var(--k4)}.k-abc button:nth-child(6n+5){background:var(--k5)}.k-abc button:nth-child(6n){background:var(--k6)}
+.k-abc button{color:var(--kink);border-color:transparent}
+.k-abc button.on{outline:4px solid var(--accent);outline-offset:1px}
+.k-sky{position:relative;height:56vh;min-height:300px;border-radius:28px;overflow:hidden;background:linear-gradient(var(--sky),var(--surface))}
+.k-balloon{position:absolute;bottom:-120px;width:70px;height:86px;border:0;border-radius:50% 50% 48% 48% / 58% 58% 42% 42%;animation:rise linear forwards;display:grid;place-items:center;box-shadow:inset -8px -10px 0 rgba(0,0,0,.12)}
+.k-balloon::after{content:"";position:absolute;bottom:-26px;left:50%;width:2px;height:26px;background:var(--muted)}
+.k-balloon span{font-family:var(--display);font-weight:800;font-size:1.9rem;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.k-balloon.pop{animation:popb .3s forwards}
+@keyframes rise{to{transform:translateY(calc(-56vh - 260px))}}
+@keyframes popb{to{transform:scale(1.6);opacity:0}}
+.k-mem{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.k-mc{border:0;padding:0;aspect-ratio:4/5;border-radius:18px;position:relative;background:none;perspective:600px}
+.k-mc>span{position:absolute;inset:0;border-radius:18px;display:grid;place-items:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .35s}
+.k-back-face{background:var(--accent);color:var(--accent-ink);font-family:var(--display);font-size:2rem;font-weight:800}
+.k-front{background:var(--surface);border:2px solid var(--line);transform:rotateY(180deg)}
+.k-mc.flip .k-back-face{transform:rotateY(180deg)}
+.k-mc.flip .k-front{transform:rotateY(360deg)}
+.k-mc.match .k-front{border-color:var(--good);background:var(--good-soft)}
+.k-mw{direction:ltr;font-family:var(--display);font-size:1rem;line-height:1.1;color:var(--ink);padding:4px;text-align:center}
+.k-micwrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+.k-mic{width:96px;height:96px}
+.k-mic svg{width:40px;height:40px}
+.k-heard{font-family:var(--body);color:var(--muted);text-align:center;min-height:1.5em}
+.k-done{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--surface);border-radius:28px;padding:24px 16px;text-align:center}
+.k-done b{font-size:1.6rem}
+.k-done>span{font-family:var(--body);color:var(--muted);direction:ltr}
+.k-stars3{font-size:2.4rem;letter-spacing:4px}
+.k-big{font-size:5rem;line-height:1}
+.k-cheer{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);background:var(--sun);color:var(--sun-ink);border-radius:28px;padding:14px 28px;text-align:center;z-index:20;font-family:var(--display);animation:cheer 1.3s forwards;pointer-events:none}
+.k-cheer b{display:block;font-size:2rem;line-height:1.2}
+.k-cheer span{direction:ltr;display:block;font-size:1rem}
+@keyframes cheer{0%{transform:translate(-50%,-50%) scale(.5);opacity:0}15%{transform:translate(-50%,-50%) scale(1.08);opacity:1}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0}}
+.k-confetti{position:fixed;inset:0;pointer-events:none;z-index:19;overflow:hidden}
+.k-confetti span{position:absolute;top:-40px;animation:fall 1.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+.k-overlay{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);display:grid;place-items:center;z-index:30;padding:16px}
+.k-reveal{background:var(--surface);border-radius:28px;padding:24px 28px;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:var(--display);text-align:center}
+.k-reveal .k-big{font-size:6rem;animation:cheer 1s}
+.k-reveal b{font-size:1.5rem}
+.k-reveal span{direction:ltr;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -220,6 +318,9 @@ nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-sof
       </div>
     </section>
 
+    <!-- KIDS -->
+    <section class="view" id="v-kids" hidden><div id="kids"></div></section>
+
     <!-- SETTINGS -->
     <section class="view set" id="v-set" hidden>
       <div class="card">
@@ -271,6 +372,7 @@ nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-sof
     <button role="tab" aria-selected="true" data-v="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>محادثة</button>
     <button role="tab" aria-selected="false" data-v="say"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg>قلها</button>
     <button role="tab" aria-selected="false" data-v="topic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>دقيقة كلام</button>
+    <button role="tab" aria-selected="false" data-v="kids"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>الأطفال</button>
   </nav>
 </div>
 <div class="toast" id="toast"></div>
@@ -666,10 +768,11 @@ if(standalone) $('#install-card').hidden=true;
 /* ---------- navigation ---------- */
 let current='chat', lastTab='chat';
 function show(v){
-  stopTopic(); stopListening(true); if(TTS) speechSynthesis.cancel();
-  current=v; if(v!=='set') lastTab=v;
+  stopTopic(); stopListening(true); if(TTS) speechSynthesis.cancel(); window.kidsStop&&window.kidsStop();
+  if(v==='kids' && current!=='kids' && window.kidsHome) window.kidsHome();
+  current=v; if(v!=='set'){ lastTab=v; store.set('talkie-tab', v); }
   $$('nav button').forEach(b=>b.setAttribute('aria-selected', b.dataset.v===v));
-  ['chat','say','topic','set'].forEach(k=>$('#v-'+k).hidden = k!==v);
+  ['chat','say','topic','kids','set'].forEach(k=>$('#v-'+k).hidden = k!==v);
   $('#main').scrollTop=0;
 }
 $$('nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
@@ -680,9 +783,11 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden){ stopList
 if(!SR) $('#chat-hint').textContent='هذا المتصفح لا يدعم الميكروفون. افتح التطبيق في Safari (iPhone) أو Chrome (Android).';
 
 buildScenes(); resetChat(); newDeck(); spin();
-show(hasKey() ? 'chat' : 'set');
+const savedTab = store.get('talkie-tab', null);
+show(savedTab && savedTab!=='set' ? (savedTab==='chat' && !hasKey() ? 'set' : savedTab) : (hasKey() ? 'chat' : 'set'));
 
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 </script>
+<script src="kids.js"></script>
 </body>
 </html>
