@@ -128,7 +128,7 @@ input.field{width:100%;direction:ltr}
 .range{display:flex;align-items:center;gap:10px}
 .range input{flex:1;accent-color:var(--accent)}
 /* tabs */
-nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+nav{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
 nav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;color:var(--muted);font-size:.78rem;font-weight:500;border-radius:12px}
 nav button svg{width:22px;height:22px}
 nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
@@ -139,6 +139,70 @@ nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-sof
 .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
 @keyframes dot{50%{transform:translateY(-4px);opacity:.4}}
 
+
+/* practice hub */
+.p-top{display:flex;align-items:center;gap:10px}
+.p-top b{font-family:var(--display);font-size:1.2rem}
+.p-back{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:600;font-size:.85rem}
+.p-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.p-tile{border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:start;min-height:112px}
+.p-tile svg{width:26px;height:26px;color:var(--accent)}
+.p-tile b{font-family:var(--display);font-size:1.05rem}
+.p-tile span{font-size:.8rem;color:var(--muted);line-height:1.4}
+.p-tile .p-badge{background:var(--sun);color:var(--sun-ink);border-radius:999px;padding:0 8px;font-weight:700;font-size:.75rem}
+.p-due{background:var(--accent);color:var(--accent-ink);border-radius:20px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;border:0;width:100%;text-align:start}
+.p-due b{font-family:var(--display);font-size:1.1rem;display:block}
+.p-due span{font-size:.85rem;opacity:.85}
+.p-stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.p-stat div{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px;text-align:center}
+.p-stat b{display:block;font-family:var(--display);font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.p-stat span{font-size:.75rem;color:var(--muted)}
+.p-wrong{direction:ltr;color:var(--bad);text-decoration:line-through;text-decoration-thickness:1px}
+.p-right{direction:ltr;color:var(--good);font-weight:600;font-size:1.15rem}
+.p-en{direction:ltr;text-align:left}
+.p-list{display:flex;flex-direction:column;gap:8px}
+.p-item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.p-item small{color:var(--muted);font-size:.75rem}
+.p-bar{display:grid;grid-template-columns:5.5rem 1fr 3rem;align-items:center;gap:8px;font-size:.85rem;border:0;background:none;padding:4px 0;width:100%;text-align:start}
+.p-bar .t{direction:ltr;font-weight:600}
+.p-bar .m{height:12px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.p-bar .m i{display:block;height:100%}
+.p-bar .v{font-variant-numeric:tabular-nums;text-align:end;color:var(--muted)}
+.p-diff{direction:ltr;font-size:1.15rem;line-height:1.7}
+.p-diff .ok{color:var(--good)} .p-diff .no{color:var(--bad);text-decoration:underline wavy} .p-diff .ex{color:var(--muted);text-decoration:line-through}
+.p-live{display:flex;gap:8px;justify-content:center}
+.p-live div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 12px;text-align:center;min-width:5.5rem}
+.p-live b{display:block;font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.p-live span{font-size:.72rem;color:var(--muted)}
+.p-seg{display:flex;gap:6px;justify-content:center}
+/* family */
+.f-av{border:1px solid var(--line);background:var(--surface);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:1.15rem;padding:0}
+.f-sheet{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 40%,transparent);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.f-panel{background:var(--bg);width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;max-height:85vh;overflow:auto}
+.f-panel h2{font-family:var(--display);margin:0;font-size:1.3rem}
+.f-prof{display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:10px 12px;width:100%;text-align:start}
+.f-prof.on{border-color:var(--accent)}
+.f-prof .e{font-size:1.8rem}
+.f-prof b{display:block}
+.f-prof small{color:var(--muted)}
+.f-emojis{display:flex;flex-wrap:wrap;gap:6px}
+.f-emojis button{width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-size:1.4rem}
+.f-emojis button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.f-gate{display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center}
+.f-gate .q{font-family:var(--display);font-size:2rem;direction:ltr}
+.f-kid{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.f-kid h3{margin:0;font-family:var(--display);display:flex;align-items:center;gap:8px}
+.f-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;align-items:end;height:90px}
+.f-week div{display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}
+.f-week i{width:70%;background:var(--accent);border-radius:6px 6px 2px 2px;min-height:2px}
+.f-week span{font-size:.65rem;color:var(--muted)}
+.f-week em{font-style:normal;font-size:.65rem;font-variant-numeric:tabular-nums}
+.f-limit{position:fixed;inset:0;z-index:35;background:var(--k4);color:var(--kink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;font-family:var(--display)}
+.f-limit .big{font-size:5rem}
+.f-limit b{font-size:1.6rem}
+body.kidmode nav{grid-template-columns:1fr}
+body.kidmode nav button:not([data-v="kids"]){display:none}
+body.kidmode #gear{display:none}
 /* ---------- kids world ---------- */
 #kids{display:flex;flex-direction:column;gap:14px;font-family:var(--display)}
 .k-hero{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--k4);color:var(--kink);border-radius:24px;padding:16px 18px}
@@ -273,6 +337,30 @@ nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-sof
 .k-pool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;direction:ltr;min-height:56px}
 .k-chip{border:0;border-radius:16px;padding:10px 16px;font-family:var(--display);font-weight:800;font-size:1.3rem;background:var(--k1);color:var(--kink)}
 .k-chip.in{background:var(--accent);color:var(--accent-ink)}
+
+/* kids: tracing, stories, simon */
+.t-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+#t-c{border-radius:28px;border:2px solid var(--line);touch-action:none;max-width:100%;background:var(--surface)}
+.t-meter{width:min(340px,100%);height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.t-meter i{display:block;height:100%;width:0;background:var(--good);transition:width .3s}
+.t-strip{display:flex;gap:6px;overflow-x:auto;direction:ltr;padding-bottom:4px;scrollbar-width:none}
+.t-strip::-webkit-scrollbar{display:none}
+.t-strip button{flex:none;width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-family:var(--display);font-weight:800;font-size:1.2rem;color:var(--ink)}
+.t-strip button.done{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.t-strip button.on{outline:3px solid var(--accent);outline-offset:1px}
+.s-page{background:var(--surface);border:2px solid var(--line);border-radius:28px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:300px;justify-content:center}
+.s-pic{font-size:5.5rem;line-height:1.1;letter-spacing:6px;text-align:center}
+.s-text{direction:ltr;font-family:var(--display);font-weight:800;font-size:1.75rem;line-height:1.45;text-align:center;text-wrap:balance}
+.s-w{border-radius:8px;padding:0 3px;cursor:pointer;transition:background .15s}
+.s-w.on{background:var(--sun);color:var(--sun-ink)}
+.s-ar{font-family:var(--body);color:var(--muted);text-align:center;font-size:1rem}
+.s-opts{display:grid;grid-template-columns:1fr;gap:10px}
+.s-opts.two{grid-template-columns:1fr 1fr}
+.s-opt,.sm-b{aspect-ratio:auto;display:flex;align-items:center;gap:14px;padding:12px 16px;justify-content:flex-start;direction:ltr}
+.s-opts.two .sm-b{flex-direction:column;justify-content:center;gap:4px;direction:rtl}
+.s-opt b,.sm-b b{font-family:var(--display);font-size:1.3rem;color:var(--ink)}
+.sm-s{color:var(--accent)}
+.sm-card .k-sent{font-size:1.7rem}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -311,7 +399,14 @@ nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-sof
     </section>
 
     <!-- SAY IT -->
+    <section class="view" id="v-practice" hidden></section>
+    <section class="view" id="v-mistakes" hidden></section>
+    <section class="view" id="v-coach" hidden></section>
+    <section class="view" id="v-dict" hidden></section>
+    <section class="view" id="v-sounds" hidden></section>
+    <section class="view" id="v-parent" hidden></section>
     <section class="view" id="v-say" hidden>
+      <div class="p-top"><button class="p-back" data-back>→ التمارين</button><b>قلها</b></div>
       <div class="seg" data-level></div>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
@@ -336,6 +431,7 @@ nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-sof
 
     <!-- TOPIC -->
     <section class="view" id="v-topic" hidden>
+      <div class="p-top"><button class="p-back" data-back>→ التمارين</button><b>دقيقة كلام</b></div>
       <div class="card">
         <div class="label">تكلم عن هذا الموضوع لمدة دقيقة</div>
         <div class="topic" id="topic"></div>
@@ -409,8 +505,7 @@ nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-sof
 
   <nav role="tablist">
     <button role="tab" aria-selected="true" data-v="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>محادثة</button>
-    <button role="tab" aria-selected="false" data-v="say"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg>قلها</button>
-    <button role="tab" aria-selected="false" data-v="topic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>دقيقة كلام</button>
+    <button role="tab" aria-selected="false" data-v="practice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg>تمارين</button>
     <button role="tab" aria-selected="false" data-v="kids"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>الأطفال</button>
   </nav>
 </div>
@@ -420,9 +515,13 @@ nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-sof
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// each family member keeps their own progress; the first profile ("main") uses the original keys
+const PID = (()=>{ try{ return JSON.parse(localStorage.getItem('talkie-current')) || 'main'; }catch(e){ return 'main'; } })();
+const PER_PROFILE = new Set(['talkie','talkie-kids','talkie-tab','talkie-mistakes','talkie-sounds','talkie-kidlog']);
+const keyOf = (k, pid=PID) => PER_PROFILE.has(k) && pid!=='main' ? k+':'+pid : k;
 const store = {
-  get(k, d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
-  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  get(k, d, pid){ try{ const v=localStorage.getItem(keyOf(k,pid)); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k, v, pid){ try{ localStorage.setItem(keyOf(k,pid), JSON.stringify(v)); }catch(e){} }
 };
 
 /* ---------- settings ---------- */
@@ -646,7 +745,9 @@ async function ask(opening){
     wait.remove();
     if(!opening && r.fix){ const f=document.createElement('div'); f.className='fix';
       f.innerHTML='<div class="en"></div>'+(r.tip?'<div class="tip"></div>':''); f.querySelector('.en').textContent='Better: '+r.fix;
-      if(r.tip) f.querySelector('.tip').textContent=r.tip; log.append(f); }
+      if(r.tip) f.querySelector('.tip').textContent=r.tip; log.append(f);
+      const lastMe=[...turns].reverse().find(t=>t.who==='Learner');
+      window.addMistake && addMistake(lastMe?lastMe.text:'', r.fix, r.tip||''); }
     if(!opening){ const s=Math.max(1,Math.min(3,Number(r.stars)||2)); const st=document.createElement('div'); st.className='stars';
       st.textContent='★'.repeat(s)+'☆'.repeat(3-s); log.append(st); award(5*s); }
     const reply=String(r.reply||'Sorry, could you say that again?');
@@ -697,6 +798,11 @@ function check(saidText){
   const missed=tw.filter((w,k)=>!hit[k]);
   $('#say-msg').textContent = pct===100 ? 'ممتاز! نطقك واضح تمامًا.' : pct>=70 ? 'جيد جدًا. ركّز على: '+missed.join('، ') : 'استمع ببطء ثم كرر. ركّز على: '+missed.join('، ');
   award(Math.round(pct/10), pct===100?'Perfect!':'');
+  window.onSayResult && onSayResult(sayList[sayIdx][0], tw, hit);
+}
+function sayPractice(tag){
+  const all=[...BANK.beg,...BANK.mid,...BANK.adv].filter(x=>x[0]===tag);
+  if(!all.length) return; sayList=shuffle(all); sayIdx=0; showSay(); show('say');
 }
 $('#listen').onclick=()=>speak(sayList[sayIdx][1], S.rate);
 $('#slow').onclick=()=>speak(sayList[sayIdx][1], 0.6);
@@ -763,7 +869,7 @@ Reply with ONLY JSON:
     const sc=Math.max(1,Math.min(10,Number(r.score)||5));
     let h='<div class="score"><div class="big">'+sc+'/10</div><div class="meter"><i style="width:'+sc*10+'%"></i></div></div>';
     if(r.praise) h+='<div class="fb-row">'+esc(r.praise)+'</div>';
-    (r.fixes||[]).slice(0,3).forEach(f=>{ h+='<div class="fb-row"><div class="en"><del>'+esc(f.said)+'</del><br><ins>'+esc(f.better)+'</ins></div></div>'; });
+    (r.fixes||[]).slice(0,3).forEach(f=>{ window.addMistake && addMistake(f.said, f.better, ''); h+='<div class="fb-row"><div class="en"><del>'+esc(f.said)+'</del><br><ins>'+esc(f.better)+'</ins></div></div>'; });
     if(r.upgrade) h+='<div class="fb-row"><div class="label">بصياغة أكثر طلاقة</div><div class="en">'+esc(r.upgrade)+'</div><button class="btn ghost" style="margin-top:8px" data-say="'+esc(r.upgrade)+'">استمع</button></div>';
     if(r.words?.length) h+='<div class="starters">'+r.words.slice(0,4).map(w=>'<span>'+esc(w)+'</span>').join('')+'</div>';
     fb.innerHTML=h; fb.querySelectorAll('[data-say]').forEach(b=>b.onclick=()=>speak(b.dataset.say));
@@ -806,15 +912,19 @@ if(standalone) $('#install-card').hidden=true;
 
 /* ---------- navigation ---------- */
 let current='chat', lastTab='chat';
+const TAB_OF = {say:'practice', topic:'practice', mistakes:'practice', coach:'practice', dict:'practice', sounds:'practice', parent:'set'};
 function show(v){
   stopTopic(); stopListening(true); if(TTS) speechSynthesis.cancel(); window.kidsStop&&window.kidsStop();
   if(v==='kids' && current!=='kids' && window.kidsHome) window.kidsHome();
   current=v; if(v!=='set'){ lastTab=v; store.set('talkie-tab', v); }
-  $$('nav button').forEach(b=>b.setAttribute('aria-selected', b.dataset.v===v));
-  ['chat','say','topic','kids','set'].forEach(k=>$('#v-'+k).hidden = k!==v);
+  const tab = TAB_OF[v] || v;
+  $$('nav button').forEach(b=>b.setAttribute('aria-selected', b.dataset.v===tab));
+  $$('main > .view').forEach(sec=>sec.hidden = sec.id!=='v-'+v);
+  window.onShow && window.onShow(v);
   $('#main').scrollTop=0;
 }
 $$('nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+document.addEventListener('click', e=>{ if(e.target.closest('[data-back]')) show('practice'); });
 $('#gear').onclick=()=>show(current==='set'?lastTab:'set');
 $('#back').onclick=()=>show(lastTab);
 document.addEventListener('visibilitychange',()=>{ if(document.hidden){ stopListening(true); if(TTS) speechSynthesis.cancel(); } });
@@ -829,5 +939,8 @@ if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.s
 </script>
 <script src="kids.js"></script>
 <script src="kids-grammar.js"></script>
+<script src="kids-more.js"></script>
+<script src="practice.js"></script>
+<script src="family.js"></script>
 </body>
 </html>

@@ -31,7 +31,32 @@ const CATS = [
     ['🚗','car','سيارة'],['🚌','bus','حافلة'],['✈️','plane','طائرة'],['🚲','bike','دراجة'],['🚂','train','قطار'],['🚢','ship','سفينة'],['🚀','rocket','صاروخ'],['🚁','helicopter','مروحية']]},
   {k:'nature', ar:'الطبيعة', en:'Nature', icon:'🌳', items:[
     ['☀️','sun','شمس'],['🌙','moon','قمر'],['⭐','star','نجمة'],['☁️','cloud','غيمة'],['🌧️','rain','مطر'],['🌳','tree','شجرة'],['🌸','flower','زهرة'],['🌊','sea','بحر']]},
-].map(c=>({...c, items:c.items.map(([p,en,ar])=>({p,en,ar,sw:/^#/.test(p)?p:null,num:/^\d+$/.test(p)}))}));
+  {k:'opp', ar:'الأضداد', en:'Opposites', icon:'↕️', items:[
+    ['🐘','big','كبير'],['🐭','small','صغير'],['🔥','hot','حار'],['🧊','cold','بارد'],['😃','happy','سعيد'],['😢','sad','حزين'],
+    ['🐆','fast','سريع'],['🐢','slow','بطيء'],['☀️','day','نهار'],['🌙','night','ليل'],['⬆️','up','فوق'],['⬇️','down','تحت'],
+    ['🦒','tall','طويل'],['🐁','short','قصير'],['🧼','clean','نظيف'],['🐷','dirty','متسخ']]},
+  {k:'days', ar:'أيام الأسبوع', en:'Days', icon:'📅', items:[
+    ['Sun','Sunday','الأحد'],['Mon','Monday','الاثنين'],['Tue','Tuesday','الثلاثاء'],['Wed','Wednesday','الأربعاء'],
+    ['Thu','Thursday','الخميس'],['Fri','Friday','الجمعة'],['Sat','Saturday','السبت']]},
+  {k:'num100', ar:'الأرقام حتى 100', en:'Numbers 11–100', icon:'💯', items:[
+    ['11','eleven','أحد عشر'],['12','twelve','اثنا عشر'],['13','thirteen','ثلاثة عشر'],['15','fifteen','خمسة عشر'],['20','twenty','عشرون'],
+    ['30','thirty','ثلاثون'],['40','forty','أربعون'],['50','fifty','خمسون'],['60','sixty','ستون'],['70','seventy','سبعون'],
+    ['80','eighty','ثمانون'],['90','ninety','تسعون'],['100','one hundred','مئة']]},
+].map(c=>({...c, items:c.items.map(([p,en,ar])=>({p,en,ar,sw:/^#/.test(p)?p:null,num:/^\d+$/.test(p),txt:/^[A-Z][a-z]{2}$/.test(p)}))}));
+// pairs for the opposites game, read from the list above (each word next to its opposite)
+const OPP = (()=>{ const it=CATS.find(c=>c.k==='opp').items, out=[]; for(let i=0;i<it.length;i+=2) out.push([it[i],it[i+1]]); return out; })();
+
+/* ---------- activity log for the parent dashboard ---------- */
+const dayKey = d => d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+let curGame = '';
+function logRead(){ return Object.assign({days:{}, miss:{}}, store.get('talkie-kidlog', {})); }
+function logPlay(game, score, total){
+  const L=logRead(), d=L.days[dayKey(new Date())] = L.days[dayKey(new Date())] || {sec:0, games:{}};
+  const g=d.games[game] = d.games[game] || {plays:0, score:0, total:0};
+  if(total==null) g.plays++; else { g.score+=score; g.total+=total; }
+  store.set('talkie-kidlog', L);
+}
+function logMiss(word){ const L=logRead(); L.miss[word]=(L.miss[word]||0)+1; store.set('talkie-kidlog', L); }
 
 const ABC = [
   ['A','apple','🍎','أ'],['B','ball','⚽','ب'],['C','cat','🐱','ك'],['D','dog','🐶','د'],['E','egg','🥚','إ'],['F','fish','🐟','ف'],
@@ -57,6 +82,7 @@ const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=rnd(i
 const pick = a => a[rnd(a.length)];
 const say = (t, cb) => speak(t, 0.85, cb);
 function pic(it, cls=''){
+  if(it.txt) return '<span class="k-num '+cls+'" style="font-size:'+(cls==='xl'?'4.5rem':cls==='lg'?'2.2rem':'1.6rem')+'">'+it.p+'</span>';
   if(it.sw) return '<span class="k-sw '+cls+'" style="background:'+it.sw+'"></span>';
   if(it.num) return '<span class="k-num '+cls+'">'+it.p+'</span>';
   return '<span class="k-emo '+cls+'">'+it.p+'</span>';
@@ -107,6 +133,7 @@ function oops(el){ tone('bad'); if(el){ el.classList.remove('k-shake'); void el.
 
 /* ---------- screens ---------- */
 function screen(title, sub){
+  if(title!==curGame){ curGame=title; logPlay(title); }
   stopGame(); try{ speechSynthesis.cancel(); }catch(e){}
   root.innerHTML='<div class="k-top"><button class="k-back" aria-label="رجوع">→ رجوع</button><div class="k-title"><b>'+title+'</b>'+(sub?'<span>'+sub+'</span>':'')+'</div><span class="k-starpill">⭐ <b data-kstars>'+K.stars+'</b></span></div><div class="k-body"></div>';
   root.querySelector('.k-back').onclick=home;
@@ -122,7 +149,7 @@ const GAMES = [
   {k:'say', ar:'قل الكلمة', en:'Say it', icon:'🎤', c:'k6', run:()=>chooseCat('قل الكلمة', sayGame)},
 ];
 function home(){
-  stopGame(); try{ speechSynthesis.cancel(); }catch(e){}
+  stopGame(); try{ speechSynthesis.cancel(); }catch(e){} curGame='';
   const shelf = STICKERS.slice(0, Math.min(STICKERS.length, Math.max(K.stickers+1, 5))).map((s,i)=> i<K.stickers ? '<span>'+s+'</span>' : '<span class="k-lock">?</span>').join('');
   const toNext = 10 - (K.stars % 10);
   root.innerHTML =
@@ -181,7 +208,7 @@ function listenGame(cat){
       if(locked) return; const o=opts[+b.dataset.k];
       if(o===target){ locked=true; b.classList.add('k-right'); if(tries===0) score++; round++; prog(); cheer(target.en); addStars(tries===0?1:0);
         setTimeout(next, 1700); }
-      else { tries++; oops(b); say('No, that is '+o.en+'.'); setTimeout(ask, 1500); }
+      else { tries++; oops(b); logMiss(target.en); say('No, that is '+o.en+'.'); setTimeout(ask, 1500); }
     });
     prog(); ask();
   };
@@ -305,7 +332,7 @@ function sayGame(cat){
     listen({btn:body.querySelector('#k-mic'), onText:t=>{ hd.textContent=t; }, onEnd:t=>{
       if(!t){ hd.textContent='لم أسمع شيئًا، جرّب بصوت أعلى'; return; }
       if(heardMatch(t, it.en)){ if(tries===0) score++; addStars(tries===0?2:1); cheer(it.en); r++; setTimeout(show, 1800); }
-      else { tries++; oops(body.querySelector('#k-sc'));
+      else { tries++; oops(body.querySelector('#k-sc')); logMiss(it.en);
         if(tries>=2){ hd.textContent='محاولة جميلة! اسمعها مرة أخرى'; say('Good try! Listen: '+it.en, ()=>{ r++; setTimeout(show, 600); }); }
         else { hd.textContent='سمعت: «'+t+'» — جرّب مرة أخرى'; say('Try again. '+it.en); } }
     }});
@@ -315,6 +342,7 @@ function sayGame(cat){
 
 /* end of round */
 function finish(body, score, total, again, extra){
+  logPlay(curGame, score, total);
   stopGame();
   const starsTxt='⭐'.repeat(Math.max(1, Math.round(3*score/total)));
   body.innerHTML='<div class="k-done"><div class="k-big">🏆</div><b>انتهت الجولة!</b><span>'+score+' / '+total+(extra?' · '+extra:'')+'</span><div class="k-stars3">'+starsTxt+'</div><div class="k-row"><button class="k-btn" id="k-again">العب مرة أخرى</button><button class="k-btn ghost" id="k-home">الألعاب</button></div></div>';
@@ -324,7 +352,7 @@ function finish(body, score, total, again, extra){
 }
 
 window.kidsHome = home;
-window.KidsAPI = {screen, home, cheer, oops, addStars, finish, say, sayAr, shuffle, pick, rnd, tone, esc, setCleanup:f=>{cleanup=f;},
+window.KidsAPI = {CATS, OPP, pic, logMiss, logPlay, screen, home, cheer, oops, addStars, finish, say, sayAr, shuffle, pick, rnd, tone, esc, setCleanup:f=>{cleanup=f;},
   refresh:()=>{ if(root.querySelector('.k-hero')) home(); }};
 home();
 })();
