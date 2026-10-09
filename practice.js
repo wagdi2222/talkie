@@ -35,6 +35,7 @@ window.addMistake = function(wrong, right, tip){
 function renderHub(){
   const v=$('#v-practice'), due=dueList().length, total=getM().length;
   v.innerHTML =
+    (window.PRACTICE_TOP||[]).map(f=>f.html()).join('')+
     (due ? '<button class="p-due" id="p-due"><div><b>مراجعة اليوم</b><span>'+due+' من تصحيحاتك تنتظر المراجعة</span></div><span style="font-size:1.6rem">←</span></button>' : '')+
     '<div class="p-grid">'+
       tile('say','قلها','نطق جمل مختارة وتصحيح فوري', ICON.say)+
@@ -43,9 +44,11 @@ function renderHub(){
       tile('coach','تدريب العرض','سرعة كلامك والكلمات الحشوية وأسئلة الجمهور', ICON.stage)+
       tile('dict','اسمع واكتب','اسمع جملة واكتبها لتقوية السماع', ICON.ear)+
       tile('sounds','أصواتي','الأصوات والكلمات التي تحتاج تمرينًا', ICON.map)+
+      (window.EXTRA_PRACTICE||[]).map(x=>tile(x.k, x.t, x.sub, x.ic)).join('')+
     '</div>';
   v.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
   const d=v.querySelector('#p-due'); if(d) d.onclick=()=>{ show('mistakes'); review(); };
+  (window.PRACTICE_TOP||[]).forEach(f=>f.wire && f.wire(v));
 }
 function tile(k, t, sub, ic, badge){ return '<button class="p-tile" data-go="'+k+'">'+ic+'<b>'+t+(badge?' <span class="p-badge">'+badge+'</span>':'')+'</b><span>'+sub+'</span></button>'; }
 
@@ -89,7 +92,7 @@ function review(){
       const m=getM(), x=m.find(y=>y.id===it.id);
       if(x){ if(ok && !again.has(it.id)){ x.box++; x.due=today()+(BOX_DAYS[Math.min(x.box,BOX_DAYS.length-1)]||1)*DAY; }
              else if(!ok){ x.box=0; x.due=today()+DAY; } setM(m); }
-      queue.shift(); done++;
+      queue.shift(); done++; window.questEvent && questEvent('review');
       if(!ok && !again.has(it.id)){ again.add(it.id); queue.push(it); }
       step();
     };
@@ -145,7 +148,7 @@ async function evaluateCoach(){
   const txt=$('#c-text').value.trim(), n=words(txt).length, mins=Math.max(0.25,(Date.now()-coach.t0)/60000), wpm=Math.round(n/mins), f=countFillers(txt);
   const res=$('#c-res');
   if(n<15){ res.innerHTML='<div class="notice">لم يُسجل كلام كافٍ. تأكد من السماح بالميكروفون وتكلم بصوت واضح.</div>'; return; }
-  P.coach=(P.coach||[]).concat([{d:Date.now(), wpm, f:f.n}]).slice(-30); store.set('talkie',P); award(20,'عرض');
+  P.coach=(P.coach||[]).concat([{d:Date.now(), wpm, f:f.n}]).slice(-30); store.set('talkie',P); award(20,'عرض'); window.questEvent && questEvent('coach');
   const pace = wpm<110 ? 'أبطأ من المعتاد. حاول أن تقلل الوقفات الطويلة.' : wpm>170 ? 'أسرع من المعتاد. خذ نفسًا بين الأفكار.' : 'سرعة مريحة للمستمعين.';
   const top=Object.entries(f.by).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,c])=>k+' ×'+c).join('، ');
   res.innerHTML='<div class="card"><div class="p-stat"><div><b>'+wpm+'</b><span>كلمة/دقيقة</span></div><div><b>'+f.n+'</b><span>حشو</span></div><div><b>'+n+'</b><span>كلمة</span></div></div>'+
@@ -208,7 +211,7 @@ function renderDict(){
       '<div class="p-diff">'+shown.map((w,k)=>'<span class="'+(hit[k]?'ok':'no')+'">'+esc(w)+'</span>').join(' ')+'</div>'+
       (extra.length?'<div class="hint" style="text-align:start">كلمات زائدة أو مكتوبة خطأ: <span class="p-diff"><span class="ex">'+esc(extra.join(' '))+'</span></span></div>':'')+
       '<div class="hint" style="text-align:start">'+(pct===100?'ممتاز! سمعتها كاملة.':'الكلمات الحمراء فاتتك. استمع مرة أخرى وركّز عليها.')+'</div></div>';
-    award(Math.round(pct/10)+(dict.plays<=1&&pct===100?3:0), pct===100?'Perfect!':'');
+    award(Math.round(pct/10)+(dict.plays<=1&&pct===100?3:0), pct===100?'Perfect!':''); window.questEvent && questEvent('dict');
   };
 }
 

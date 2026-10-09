@@ -110,7 +110,7 @@ function weekBars(pid){
 }
 function kidCard(p){
   const K=store.get('talkie-kids', {stars:0, stickers:0}, p.id), L=Object.assign({days:{}, miss:{}}, store.get('talkie-kidlog', {}, p.id));
-  const games={}; Object.values(L.days).forEach(d=>Object.entries(d.games||{}).forEach(([g,x])=>{ const t=games[g]=games[g]||{plays:0,score:0,total:0}; t.plays+=x.plays; t.score+=x.score; t.total+=x.total; }));
+  const games={}; Object.values(L.days).forEach(d=>Object.entries(d.games||{}).filter(([g])=>!/^غرفة |خريطة المغامرة|الدوري العائلي/.test(g)).forEach(([g,x])=>{ const t=games[g]=games[g]||{plays:0,score:0,total:0}; t.plays+=x.plays; t.score+=x.score; t.total+=x.total; }));
   const top=Object.entries(games).sort((a,b)=>b[1].plays-a[1].plays).slice(0,8);
   const miss=Object.entries(L.miss||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const lim=F.limits[p.id]||0, today=Math.round(usedToday(p.id)/60);
@@ -121,6 +121,7 @@ function kidCard(p){
       return '<div class="p-bar" style="grid-template-columns:1fr auto auto"><span>'+esc(g)+'</span><span class="v">'+x.plays+' مرة</span><span class="v" style="min-width:3.2rem">'+(acc==null?'–':acc+'%')+'</span></div>'; }).join('')+'</div>'
       :'<p class="hint">لم يلعب بعد.</p>')+
     (miss.length?'<div class="label">كلمات يخطئ فيها</div><div class="starters" style="direction:ltr">'+miss.map(([w,n])=>'<span>'+esc(w)+' ×'+n+'</span>').join('')+'</div>':'')+
+    '<button class="btn ghost" data-report="'+p.id+'">📤 بطاقة إنجاز الأسبوع</button>'+
     '<div class="label">حد اللعب اليومي</div><div class="p-seg" data-lim="'+p.id+'">'+[0,15,30,45,60].map(m=>'<button class="chip" data-m="'+m+'" aria-pressed="'+(m===lim)+'">'+(m?m+' د':'بلا حد')+'</button>').join('')+'</div>'+
     (p.id!=='main'?'<button class="p-back" data-rm="'+p.id+'" style="align-self:flex-start">حذف هذا الملف</button>':'')+
   '</div>';
@@ -139,12 +140,13 @@ function renderDash(){
     '<button class="btn ghost" id="pd-add">+ إضافة فرد</button>';
   v.querySelector('#pd-back').onclick=()=>show('set');
   v.querySelector('#pd-add').onclick=addForm;
+  v.querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>window.weeklyCard && weeklyCard(b.dataset.report));
   v.querySelectorAll('[data-lim]').forEach(row=>row.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{
     F.limits[row.dataset.lim]=+b.dataset.m; saveF(); row.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed', x===b)); toast(+b.dataset.m?'الحد اليومي '+b.dataset.m+' دقيقة':'بلا حد يومي'); }));
   v.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{
     if(!b.dataset.armed){ b.dataset.armed='1'; b.textContent='اضغط مرة أخرى لحذف كل تقدمه نهائيًا'; return; }
     const id=b.dataset.rm; F.list=F.list.filter(p=>p.id!==id); delete F.limits[id]; saveF();
-    ['talkie','talkie-kids','talkie-tab','talkie-mistakes','talkie-sounds','talkie-kidlog'].forEach(k=>{ try{ localStorage.removeItem(keyOf(k,id)); }catch(e){} });
+    ['talkie','talkie-kids','talkie-tab','talkie-mistakes','talkie-sounds','talkie-kidlog','talkie-sammem','talkie-pet','talkie-map','talkie-quests'].forEach(k=>{ try{ localStorage.removeItem(keyOf(k,id)); }catch(e){} });
     if(id===me.id) switchTo('main'); else renderDash();
   });
 }

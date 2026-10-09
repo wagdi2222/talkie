@@ -361,6 +361,164 @@ body.kidmode #gear{display:none}
 .s-opt b,.sm-b b{font-family:var(--display);font-size:1.3rem;color:var(--ink)}
 .sm-s{color:var(--accent)}
 .sm-card .k-sent{font-size:1.7rem}
+
+/* ---------- call Sam ---------- */
+.call-cta{display:flex;align-items:center;gap:12px;border:0;border-radius:18px;padding:12px 14px;background:linear-gradient(120deg,var(--accent),color-mix(in srgb,var(--accent) 70%,#12925E));color:var(--accent-ink);text-align:start;width:100%}
+.call-cta b{display:block;font-family:var(--display);font-size:1.1rem}
+.call-cta div span{font-size:.8rem;opacity:.9}
+.call-cta div{flex:1}
+.call-ph{font-size:1.6rem}
+.call-dot{width:10px;height:10px;border-radius:50%;background:#4CD39A;box-shadow:0 0 0 4px rgba(76,211,154,.35);flex:none}
+.call-lobby{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.call-name{font-family:var(--display);font-size:1.6rem}
+.call-start{border:0;border-radius:999px;padding:16px 22px;background:var(--good);color:#fff;font-family:var(--display);font-size:1.25rem;font-weight:800;box-shadow:0 8px 22px color-mix(in srgb,var(--good) 35%,transparent)}
+.call-start:disabled{opacity:.45}
+.call-stage{display:flex;flex-direction:column;align-items:center;gap:14px;background:linear-gradient(180deg,var(--accent-soft),var(--bg));border-radius:28px;padding:16px 14px 18px;min-height:calc(100% - 8px)}
+.call-top{display:flex;justify-content:space-between;width:100%;font-weight:600;font-size:.85rem}
+.call-live{color:var(--bad)}
+.call-time{font-variant-numeric:tabular-nums;color:var(--muted)}
+.sam-wrap{position:relative;width:min(56vw,220px);aspect-ratio:1;border-radius:50%;transition:transform .3s}
+.sam-wrap.small{width:110px}
+.sam-face{width:100%;height:100%;display:block}
+.sf-bg{fill:#FFD9B8} .sf-hair{fill:#3B2A20} .sf-eye{fill:#2A1E1A} .sf-glint{fill:#fff} .sf-cheek{fill:#FF9E9E;opacity:.55} .sf-mouth{fill:#8A2E2E}
+.sf-eyes{transform-origin:100px 96px;animation:blinkEye 4.2s infinite}
+@keyframes blinkEye{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.sf-mouth-g{transform-origin:100px 136px}
+.sam-wrap.talking .sf-mouth-g{animation:talk .26s infinite alternate}
+@keyframes talk{from{transform:scaleY(.35)}to{transform:scaleY(1.35)}}
+.sam-wrap.listening{box-shadow:0 0 0 10px color-mix(in srgb,var(--good) 25%,transparent);animation:listenRing 1.4s infinite}
+@keyframes listenRing{50%{box-shadow:0 0 0 22px color-mix(in srgb,var(--good) 8%,transparent)}}
+.sam-think{position:absolute;top:2%;right:4%;display:none;gap:5px;background:var(--surface);border-radius:999px;padding:8px 12px;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.sam-think i{width:8px;height:8px;border-radius:50%;background:var(--muted);animation:dot 1s infinite}
+.sam-think i:nth-child(2){animation-delay:.15s}.sam-think i:nth-child(3){animation-delay:.3s}
+.sam-wrap.thinking .sam-think{display:flex}
+.call-status{font-family:var(--display);font-size:1.2rem;text-align:center}
+.call-caps{width:100%;display:flex;flex-direction:column;gap:8px;min-height:90px}
+.cap{direction:ltr;border-radius:16px;padding:10px 14px;font-size:1rem;line-height:1.45}
+.cap:empty{display:none}
+.cap.sam{background:var(--surface);border:1px solid var(--line)}
+.cap.you{background:var(--accent);color:var(--accent-ink);align-self:flex-end}
+.call-ctl{display:flex;align-items:center;gap:22px}
+.cc-btn{width:56px;height:56px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-weight:800;font-size:.95rem}
+.cc-btn.off{opacity:.45}
+.cc-btn.end{background:var(--bad);color:#fff;border-color:var(--bad);font-size:1.4rem}
+.cs-mic{width:84px;height:84px}
+/* ---------- shadowing ---------- */
+.sh-mode{grid-template-columns:repeat(3,1fr)}
+.sh-card{align-items:stretch}
+.sh-speeds{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.sh-speeds span{border-radius:999px;padding:3px 10px;font-size:.8rem;background:var(--surface-2);color:var(--muted)}
+.sh-speeds .on{background:var(--accent);color:var(--accent-ink)}
+.sh-speeds .done{background:var(--good-soft);color:var(--good)}
+.sh-line{direction:ltr;font-family:var(--display);font-weight:800;font-size:1.55rem;line-height:1.5;text-align:center;text-wrap:balance}
+.sh-line .s-w{border-radius:8px;padding:0 3px;transition:background .15s}
+.sh-line .s-w.on{background:var(--sun);color:var(--sun-ink)}
+.sh-line .s-w.ok{color:var(--good)} .sh-line .s-w.no{color:var(--bad);text-decoration:underline wavy}
+.sh-line.hidden-text .s-w:not(.ok):not(.no){color:transparent;background:var(--surface-2);border-radius:8px}
+/* ---------- quests & league ---------- */
+.q-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.q-card.kid{background:var(--k1);border:0;color:var(--kink);font-family:var(--display)}
+.q-head{display:flex;justify-content:space-between;align-items:center}
+.q-head b{font-family:var(--display);font-size:1.1rem}
+.q-head span{font-variant-numeric:tabular-nums;font-weight:700}
+.q-row{position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;border:0;border-radius:14px;padding:10px 12px;background:var(--surface-2);text-align:start;width:100%;color:inherit}
+.q-card.kid .q-row{background:rgba(255,255,255,.55)}
+.q-row i{position:absolute;inset:auto auto 0 0;height:4px;background:var(--good);border-radius:4px}
+[dir="rtl"] .q-row i{left:auto;right:0}
+.q-chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:.8rem;flex:none;font-weight:800}
+.q-row.done .q-chk{background:var(--good);border-color:var(--good);color:#fff}
+.q-row.done .q-t{text-decoration:line-through;opacity:.7}
+.q-t{flex:1;font-size:.92rem}
+.q-n{font-variant-numeric:tabular-nums;font-size:.8rem;opacity:.75}
+.q-league{border:0;background:none;color:var(--accent);font-weight:700;text-align:start;padding:4px 2px;font-family:inherit}
+.q-card.kid .q-league{color:var(--kink)}
+.lg-hero{background:linear-gradient(120deg,var(--sun),var(--k6));color:var(--sun-ink);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.lg-hero b{font-family:var(--display);font-size:1.5rem}
+.lg-hero span{font-size:.85rem}
+.lg-row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:10px 14px}
+.lg-row.me{border-color:var(--accent)}
+.lg-rank{width:2rem;text-align:center;font-size:1.4rem;font-weight:800}
+.lg-emo{font-size:1.6rem}
+.lg-row b{flex:1}
+.lg-pts{font-family:var(--display);font-weight:800;font-size:1.3rem;font-variant-numeric:tabular-nums}
+/* ---------- pet ---------- */
+.pet-card{display:flex;align-items:center;gap:12px;background:var(--k3);color:var(--kink);border-radius:24px;padding:12px 14px}
+.pet-stage{position:relative;border:0;background:rgba(255,255,255,.5);border-radius:22px;width:118px;height:118px;flex:none;display:grid;place-items:center}
+.pet-emo{font-size:calc(5.2rem * var(--s,1));line-height:1;display:block;animation:petIdle 2.6s ease-in-out infinite}
+@keyframes petIdle{50%{transform:translateY(-4px) rotate(-2deg)}}
+.pet-stage.hop .pet-emo{animation:hop .5s}
+@keyframes hop{30%{transform:translateY(-22px) rotate(6deg)}60%{transform:translateY(0)}}
+.pet-acc{position:absolute;top:6px;left:10px;font-size:1.6rem}
+.pet-bubble{position:absolute;top:-8px;right:-8px;background:var(--surface);border-radius:50%;width:38px;height:38px;display:grid;place-items:center;font-size:1.3rem;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.pet-mood{font-family:var(--body);font-weight:700;font-size:.9rem}
+.pet-info{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.pet-info b{font-family:var(--display);font-size:1.4rem}
+.pet-info>span{font-family:var(--body);font-size:.82rem;opacity:.85}
+.pet-btns{display:flex;gap:8px;flex-wrap:wrap}
+.pet-btns .k-btn{padding:8px 12px;font-size:.92rem}
+.pet-room{position:relative;height:300px;border-radius:26px;overflow:hidden;background:linear-gradient(var(--k4) 0 66%, var(--k6) 66%)}
+.pr-wall{position:absolute;inset:14px 14px auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pr-slot{height:48px;border-radius:12px;background:rgba(255,255,255,.35);display:grid;place-items:center;font-size:2rem}
+.pr-pet{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);border:0;background:none}
+.pr-pet .pet-acc{left:auto;right:0}
+.pr-st{width:50px;height:50px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);font-size:1.7rem}
+.pr-st.on{border-color:var(--good);background:var(--good-soft)}
+.feed-anim{position:relative;height:110px;width:140px;display:flex;align-items:flex-end;justify-content:center}
+.feed-food{position:absolute;top:0;left:0;font-size:2.4rem;animation:fly .9s ease-in forwards}
+@keyframes fly{to{transform:translate(55px,60px) scale(.3);opacity:0}}
+/* ---------- adventure map ---------- */
+.map-cta{display:flex;align-items:center;gap:12px;border:0;border-radius:22px;padding:14px 16px;background:linear-gradient(120deg,var(--k4),var(--k3));color:var(--kink);text-align:start;width:100%;font-family:var(--display)}
+.map-cta>span:first-child{font-size:2.4rem}
+.map-cta div{flex:1}
+.map-cta b{display:block;font-size:1.25rem}
+.map-cta em{font-style:normal;font-family:var(--body);font-size:.85rem;opacity:.8}
+.map-cta-go{font-size:1.5rem}
+.map{position:relative;display:flex;flex-direction:column;gap:6px;padding:8px 0 20px;background:linear-gradient(var(--k4),var(--k3) 30%,var(--k1) 55%,var(--k3) 80%,var(--k5));border-radius:28px;overflow:hidden}
+.map-path{position:absolute;inset:0 auto auto 0;pointer-events:none}
+.map-island{position:relative;z-index:1;align-self:center;background:rgba(255,255,255,.7);color:var(--kink);border-radius:999px;padding:4px 14px;font-family:var(--display);font-weight:800;margin:10px 0 2px;display:flex;gap:6px;align-items:center}
+.map-island span{font-size:1.3rem}
+.map-st{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:50%;gap:2px;font-family:var(--display);color:var(--kink)}
+.map-st.c{align-self:center}.map-st.r{align-self:flex-start;margin-inline-start:8%}.map-st.l{align-self:flex-end;margin-inline-end:8%}
+.map-node{position:relative;width:70px;height:70px;border-radius:50%;border:0;background:var(--surface);font-size:2rem;box-shadow:0 6px 0 rgba(0,0,0,.18);display:grid;place-items:center}
+.map-node.done{background:var(--sun)}
+.map-node.locked{filter:grayscale(1);opacity:.65;font-size:1.4rem}
+.map-node.cur{box-shadow:0 6px 0 rgba(0,0,0,.18),0 0 0 6px var(--accent);animation:petIdle 1.6s infinite}
+.map-pet{position:absolute;top:-22px;right:-24px;font-size:1.6rem}
+.map-t{font-size:.85rem;font-weight:800;text-align:center}
+.map-stars{font-size:.8rem;min-height:1em}
+.map-stars em{font-style:normal;opacity:.4}
+.map-end{position:relative;z-index:1;align-self:center;font-family:var(--display);font-weight:800;color:var(--kink);margin-top:10px}
+/* ---------- treasure hunt ---------- */
+.hunt-timer{position:relative;width:120px;height:120px;margin:0 auto;display:grid;place-items:center}
+.hunt-timer svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ht-bg{fill:none;stroke:var(--line);stroke-width:9}
+.ht-fg{fill:none;stroke:var(--k6);stroke-width:9;stroke-linecap:round;stroke-dasharray:276.5;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear}
+.hunt-timer b{font-family:var(--display);font-size:2.4rem;font-variant-numeric:tabular-nums}
+/* ---------- duel ---------- */
+.duel{position:fixed;inset:0;z-index:45;display:grid;grid-template-rows:1fr auto 1fr;background:var(--bg)}
+.duel-half{display:flex;flex-direction:column;gap:10px;padding:14px 16px;transition:background .2s,opacity .2s}
+.duel-half.p0{background:color-mix(in srgb,#1E63D6 18%,var(--bg));transform:rotate(180deg);padding-top:calc(14px + env(safe-area-inset-bottom,0px))}
+.duel-half.p1{background:color-mix(in srgb,#FB8C00 20%,var(--bg));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+.duel-half.frozen{opacity:.4}
+.duel-half.win{background:var(--good-soft)}
+.duel-top{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800}
+.duel-sc{font-size:2.2rem;min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+.duel-top span{flex:1}
+.duel-rep{border:0;background:var(--surface);border-radius:50%;width:44px;height:44px;font-size:1.2rem}
+.duel-opts{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:center}
+.duel-opt{border:2.5px solid var(--line);background:var(--surface);border-radius:20px;aspect-ratio:1;display:grid;place-items:center;touch-action:manipulation}
+.duel-mid{display:flex;align-items:center;justify-content:space-between;padding:6px 16px;background:var(--surface);border-block:1px solid var(--line);font-family:var(--display);font-weight:800}
+.duel-x{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 14px;font-weight:700}
+/* ---------- chants ---------- */
+.ch-box{display:flex;flex-direction:column;gap:8px}
+.ch-line{display:flex;align-items:center;gap:12px;background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:12px 14px;direction:ltr;transition:transform .2s,background .2s}
+.ch-e{font-size:2rem}
+.ch-t{font-family:var(--display);font-weight:800;font-size:1.2rem;line-height:1.3}
+.ch-line.listen{background:var(--k4);border-color:transparent;transform:scale(1.03);color:var(--kink)}
+.ch-line.turn{background:var(--sun);border-color:transparent;transform:scale(1.05);color:var(--sun-ink);animation:petIdle .65s infinite}
+.ch-line.sung{opacity:.55}
+.ch-turn{text-align:center;font-family:var(--display);font-weight:800;font-size:1.4rem;min-height:2rem}
+.s-w.got{background:var(--good-soft);color:var(--good)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -383,6 +541,7 @@ body.kidmode #gear{display:none}
         <div class="chips" id="scenes"></div>
       </div>
       <div class="seg" data-level></div>
+      <button class="call-cta" id="call-cta"><span class="call-dot"></span><div><b>اتصل بـ Sam</b><span>مكالمة صوتية دون لمس الشاشة · يتذكّرك</span></div><span class="call-ph">📞</span></button>
       <div class="log" id="log"></div>
       <div class="composer">
         <div class="row">
@@ -405,6 +564,9 @@ body.kidmode #gear{display:none}
     <section class="view" id="v-dict" hidden></section>
     <section class="view" id="v-sounds" hidden></section>
     <section class="view" id="v-parent" hidden></section>
+    <section class="view" id="v-call" hidden></section>
+    <section class="view" id="v-shadow" hidden></section>
+    <section class="view" id="v-league" hidden></section>
     <section class="view" id="v-say" hidden>
       <div class="p-top"><button class="p-back" data-back>→ التمارين</button><b>قلها</b></div>
       <div class="seg" data-level></div>
@@ -517,7 +679,7 @@ const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // each family member keeps their own progress; the first profile ("main") uses the original keys
 const PID = (()=>{ try{ return JSON.parse(localStorage.getItem('talkie-current')) || 'main'; }catch(e){ return 'main'; } })();
-const PER_PROFILE = new Set(['talkie','talkie-kids','talkie-tab','talkie-mistakes','talkie-sounds','talkie-kidlog']);
+const PER_PROFILE = new Set(['talkie','talkie-kids','talkie-tab','talkie-mistakes','talkie-sounds','talkie-kidlog','talkie-sammem','talkie-pet','talkie-map','talkie-quests']);
 const keyOf = (k, pid=PID) => PER_PROFILE.has(k) && pid!=='main' ? k+':'+pid : k;
 const store = {
   get(k, d, pid){ try{ const v=localStorage.getItem(keyOf(k,pid)); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
@@ -690,6 +852,12 @@ const SCENES=[
   {k:'doc', n:'عند الطبيب', d:'you are a friendly doctor; the learner describes a mild everyday symptom'},
   {k:'taxi', n:'سائق تاكسي', d:'you are a chatty taxi driver in London; the learner is the passenger'},
   {k:'job', n:'مقابلة عمل', d:'you are on a university hiring committee interviewing the learner for a senior academic role'},
+  {k:'teach', n:'أنت المعلّم', d:'ROLE SWAP: you are a curious beginner student and the learner is your teacher. Ask them to teach you something they know well (their job, a skill, a tradition). Ask simple follow-up questions, sometimes misunderstand a little so they must explain more clearly, and thank them when they explain well'},
+  {k:'majlis', n:'ضيف في المجلس', d:'you are a foreign colleague visiting the learner\'s majlis (sitting room) in Saudi Arabia for the first time; you are curious about Arabic coffee, dates, and local customs'},
+  {k:'kabsa', n:'اشرح طبقًا سعوديًا', d:'you are a tourist in Riyadh at a restaurant; ask the learner to recommend and explain Saudi dishes such as kabsa, jareesh and mutabbaq, and how they are eaten'},
+  {k:'season', n:'دليل في الرياض', d:'you are a visitor in Riyadh for a few days; the learner is your local guide; ask about places to visit, events, weather, transport and what to wear'},
+  {k:'defense', n:'مناقشة رسالة', d:'you are an external examiner at a PhD thesis defense in engineering; ask the learner (the candidate) clear, fair questions about methods, results and limitations, one at a time'},
+  {k:'review', n:'ردّ على المحكّمين', d:'you are a journal editor on a video call; discuss the reviewers\' comments on the learner\'s manuscript and ask how they will address each concern'},
 ];
 let scene=SCENES[0], turns=[], busy=false;
 $('#auto').checked=!!S.auto;
@@ -759,7 +927,7 @@ async function ask(opening){
 }
 function send(){ const t=$('#say'); const v=t.value.trim(); if(!v||busy) return;
   if(!hasKey()){ toast('أضف مفتاح API من الإعدادات أولًا.'); return; }
-  turns.push({who:'Learner',text:v}); bubble('Me', v); t.value=''; autosize(); ask(false); }
+  turns.push({who:'Learner',text:v}); bubble('Me', v); t.value=''; autosize(); ask(false); window.questEvent && questEvent('chat'); }
 function autosize(){ const t=$('#say'); t.style.height='auto'; t.style.height=Math.min(120,t.scrollHeight)+'px'; }
 function chatListen(quiet){
   listen({btn:$('#mic-chat'), quiet, onText:t=>{ $('#say').value=t; autosize(); }, onEnd:(t)=>{ if(t) send(); }});
@@ -799,6 +967,7 @@ function check(saidText){
   $('#say-msg').textContent = pct===100 ? 'ممتاز! نطقك واضح تمامًا.' : pct>=70 ? 'جيد جدًا. ركّز على: '+missed.join('، ') : 'استمع ببطء ثم كرر. ركّز على: '+missed.join('، ');
   award(Math.round(pct/10), pct===100?'Perfect!':'');
   window.onSayResult && onSayResult(sayList[sayIdx][0], tw, hit);
+  window.questEvent && questEvent('say');
 }
 function sayPractice(tag){
   const all=[...BANK.beg,...BANK.mid,...BANK.adv].filter(x=>x[0]===tag);
@@ -912,7 +1081,7 @@ if(standalone) $('#install-card').hidden=true;
 
 /* ---------- navigation ---------- */
 let current='chat', lastTab='chat';
-const TAB_OF = {say:'practice', topic:'practice', mistakes:'practice', coach:'practice', dict:'practice', sounds:'practice', parent:'set'};
+const TAB_OF = {say:'practice', topic:'practice', mistakes:'practice', coach:'practice', dict:'practice', sounds:'practice', shadow:'practice', league:'practice', call:'chat', parent:'set'};
 function show(v){
   stopTopic(); stopListening(true); if(TTS) speechSynthesis.cancel(); window.kidsStop&&window.kidsStop();
   if(v==='kids' && current!=='kids' && window.kidsHome) window.kidsHome();
@@ -941,6 +1110,10 @@ if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.s
 <script src="kids-grammar.js"></script>
 <script src="kids-more.js"></script>
 <script src="practice.js"></script>
+<script src="quests.js"></script>
+<script src="call.js"></script>
+<script src="shadow.js"></script>
+<script src="kids-world.js"></script>
 <script src="family.js"></script>
 </body>
 </html>

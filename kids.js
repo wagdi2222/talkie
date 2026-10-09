@@ -115,6 +115,7 @@ function addStars(n){
   while(Math.floor(K.stars/10) > K.stickers && K.stickers < STICKERS.length){ unlocked=STICKERS[K.stickers]; K.stickers++; }
   saveK(); paintStars();
   if(unlocked) setTimeout(()=>stickerReveal(unlocked), 700);
+  if(n>0 && window.onKidStars) try{ window.onKidStars(n); }catch(e){}
 }
 function paintStars(){ document.querySelectorAll('[data-kstars]').forEach(e=>e.textContent=K.stars); }
 function stickerReveal(s){
@@ -155,12 +156,14 @@ function home(){
   root.innerHTML =
     '<div class="k-hero"><div><b>مرحبًا يا بطل!</b><span>Hello, superstar!</span></div><span class="k-starpill big">⭐ <b data-kstars>'+K.stars+'</b></span></div>'+
     '<div class="k-shelf-wrap"><div class="k-label">ملصقاتي · '+(K.stickers<STICKERS.length?'باقي '+toNext+' نجوم للملصق التالي':'جمعت كل الملصقات!')+'</div><div class="k-shelf">'+shelf+'</div></div>'+
+    (window.KIDS_TOP||[]).map(f=>f.html()).join('')+
     '<h3 class="k-sec">الكلمات والحروف</h3>'+
     '<div class="k-grid">'+GAMES.map(g=>'<button class="k-tile '+g.c+'" data-g="'+g.k+'"><span class="k-ico">'+g.icon+'</span><b>'+g.ar+'</b><span>'+g.en+'</span></button>').join('')+'</div>'+
     (window.KIDS_EXTRA||[]).map(sec=>'<h3 class="k-sec">'+sec.title+'</h3><div class="k-grid">'+sec.games.map(g=>'<button class="k-tile '+g.c+'" data-x="'+g.k+'"><span class="k-ico">'+g.icon+'</span><b>'+g.ar+'</b><span>'+g.en+'</span></button>').join('')+'</div>').join('')+
     '<p class="k-note">كل الألعاب تعمل دون إنترنت ودون مفتاح، ولا يتحدث الطفل مع الذكاء الاصطناعي.</p>';
   root.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>GAMES.find(g=>g.k===b.dataset.g).run());
   root.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>(window.KIDS_EXTRA||[]).flatMap(s=>s.games).find(g=>g.k===b.dataset.x).run());
+  (window.KIDS_TOP||[]).forEach(f=>f.wire && f.wire(root));
 }
 function chooseCat(title, game){
   const body=screen(title,'اختر موضوعًا');
@@ -343,6 +346,7 @@ function sayGame(cat){
 /* end of round */
 function finish(body, score, total, again, extra){
   logPlay(curGame, score, total);
+  if(window.onKidFinish) try{ window.onKidFinish(score, total, curGame); }catch(e){}
   stopGame();
   const starsTxt='⭐'.repeat(Math.max(1, Math.round(3*score/total)));
   body.innerHTML='<div class="k-done"><div class="k-big">🏆</div><b>انتهت الجولة!</b><span>'+score+' / '+total+(extra?' · '+extra:'')+'</span><div class="k-stars3">'+starsTxt+'</div><div class="k-row"><button class="k-btn" id="k-again">العب مرة أخرى</button><button class="k-btn ghost" id="k-home">الألعاب</button></div></div>';
@@ -352,7 +356,7 @@ function finish(body, score, total, again, extra){
 }
 
 window.kidsHome = home;
-window.KidsAPI = {CATS, OPP, pic, logMiss, logPlay, screen, home, cheer, oops, addStars, finish, say, sayAr, shuffle, pick, rnd, tone, esc, setCleanup:f=>{cleanup=f;},
+window.KidsAPI = {K, saveK, STICKERS, flash, listenGame, memory, sayGame, abc, balloons, chooseCat, CATS, OPP, pic, logMiss, logPlay, screen, home, cheer, oops, addStars, finish, say, sayAr, shuffle, pick, rnd, tone, esc, setCleanup:f=>{cleanup=f;},
   refresh:()=>{ if(root.querySelector('.k-hero')) home(); }};
 home();
 })();

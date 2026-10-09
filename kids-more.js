@@ -63,6 +63,7 @@ function trace(){
     const s = score(); meter(s.cov);
     if(!won && s.cov >= 0.72 && s.out <= 0.3){
       won = true; done.add(idx); const L = LET[idx];
+      window.questEvent && questEvent('trace'); window.TalkieBus && TalkieBus.emit('trace');
       cheer(); addStars(2); setTimeout(()=>say(L+'! '+L+' is for '+WORD_FOR[L]+'.'), 900);
       body.querySelectorAll('#t-s button')[idx].classList.add('done');
     } else if(!won && s.out > 0.45 && s.cov > 0.2){
@@ -149,17 +150,39 @@ function readStory(st){
   let p = 0, showAr = false, timer = null, reading = false;
   body.innerHTML = '<div class="s-page"><div class="s-pic" id="s-pic"></div><div class="s-text" id="s-text"></div><div class="s-ar" id="s-ar" hidden></div></div>'+
     '<div class="k-row"><button class="k-btn ghost" id="s-prev">→</button><button class="k-btn" id="s-read">🔊 اقرأ لي</button><button class="k-btn ghost" id="s-next">←</button></div>'+
-    '<div class="k-row"><button class="k-btn ghost" id="s-tr">الترجمة</button></div><div class="k-progress" id="s-pr"></div>'+
+    '<div class="k-row"><button class="k-btn ghost" id="s-tr">الترجمة</button><button class="k-btn ghost" id="s-me">🎤 اقرأ أنت</button></div><div class="k-heard" id="s-hd"></div><div class="k-progress" id="s-pr"></div>'+
     '<p class="k-hint">اضغط أي كلمة لتسمعها وحدها</p>';
   const $b = id => body.querySelector(id);
   const stopRead = ()=>{ reading=false; clearInterval(timer); timer=null; try{ speechSynthesis.cancel(); }catch(e){} body.querySelectorAll('.s-w').forEach(w=>w.classList.remove('on')); };
-  A.setCleanup(stopRead);
+  A.setCleanup(()=>{ stopRead(); try{ stopListening(true); }catch(e){} });
+  const norm = w => w.toLowerCase().replace(/[^a-z']/g,'');
+  /* the child reads the page aloud; each word lights up green when the phone hears it in order */
+  function readMe(){
+    if(typeof rec!=='undefined' && rec){ stopListening(); return; }
+    if(!(window.SpeechRecognition||window.webkitSpeechRecognition)){ $b('#s-hd').textContent='هذا المتصفح لا يدعم الميكروفون. جرّب Safari أو Chrome.'; return; }
+    stopRead();
+    const spans=[...body.querySelectorAll('.s-w')], target=spans.map(s=>norm(s.textContent));
+    spans.forEach(s=>s.classList.remove('got'));
+    let doneHere=false;
+    $b('#s-hd').textContent='اقرأ الجملة بصوت عالٍ…';
+    listen({btn:$b('#s-me'), continuous:true, onText:t=>{
+      const heard=t.split(/\s+/).map(norm).filter(Boolean); let i=0, j=0; const got=new Array(target.length).fill(false);
+      while(i<target.length && j<heard.length){
+        if(heard[j]===target[i]){ got[i]=true; i++; j++; }
+        else if(i+1<target.length && heard[j]===target[i+1]){ i++; }      // a word the phone missed; keep going
+        else j++;
+      }
+      spans.forEach((s,k)=>s.classList.toggle('got', got[k]));
+      const ratio=got.filter(Boolean).length/target.length;
+      if(!doneHere && ratio>=0.85){ doneHere=true; stopListening(); cheer(); addStars(1); $b('#s-hd').textContent='قرأتها رائع! 🌟'; }
+    }, onEnd:()=>{ if(!doneHere && $b('#s-hd')) $b('#s-hd').textContent='اضغط «اقرأ أنت» لتكمل القراءة'; }});
+  }
   function render(){
     stopRead();
     const [pic, en, ar] = st.pages[p];
     $b('#s-pic').textContent = pic;
     $b('#s-text').innerHTML = en.split(' ').map((w,i)=>'<span class="s-w" data-i="'+i+'">'+esc(w)+'</span>').join(' ');
-    $b('#s-ar').textContent = ar; $b('#s-ar').hidden = !showAr;
+    $b('#s-ar').textContent = ar; $b('#s-ar').hidden = !showAr; $b('#s-hd').textContent='';
     $b('#s-pr').innerHTML = st.pages.map((_,k)=>'<i class="'+(k<=p?'done':'')+'"></i>').join('');
     $b('#s-next').textContent = p===st.pages.length-1 ? 'الأسئلة ←' : '←';
     body.querySelectorAll('.s-w').forEach(w=>w.onclick=()=>{ stopRead(); w.classList.add('on'); say(w.textContent.replace(/[^A-Za-z']/g,''), ()=>w.classList.remove('on')); });
@@ -184,9 +207,10 @@ function readStory(st){
     }catch(e){}
   }
   $b('#s-read').onclick = read;
+  $b('#s-me').onclick = readMe;
   $b('#s-tr').onclick = ()=>{ showAr = !showAr; $b('#s-ar').hidden = !showAr; };
   $b('#s-prev').onclick = ()=>{ if(p>0){ p--; render(); } };
-  $b('#s-next').onclick = ()=>{ if(p<st.pages.length-1){ p++; render(); } else { stopRead(); addStars(2); storyQuiz(st); } };
+  $b('#s-next').onclick = ()=>{ if(p<st.pages.length-1){ p++; render(); } else { stopRead(); addStars(2); window.questEvent && questEvent('story'); window.TalkieBus && TalkieBus.emit('story'); storyQuiz(st); } };
   render();
 }
 function storyQuiz(st){
@@ -264,6 +288,7 @@ function opposites(){
   show();
 }
 
+window.KIDS_STORY = {read: readStory, list: STORIES};
 window.KIDS_EXTRA = (window.KIDS_EXTRA||[]).concat([{title:'اكتب واقرأ وتحرّك', games:[
   {k:'trace', ar:'اكتب الحرف', en:'Trace letters', icon:'✍️', c:'k3', run:trace},
   {k:'stories', ar:'قصص قصيرة', en:'Stories', icon:'📖', c:'k1', run:stories},
