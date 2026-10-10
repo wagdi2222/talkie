@@ -142,7 +142,7 @@ function startCoach(){
 function stopCoach(evaluate){
   if(!coach.on) return; coach.on=false; clearInterval(coach.tmr); stopListening();
   const b=$('#c-go'); if(b) b.textContent='ابدأ العرض';
-  if(evaluate) setTimeout(evaluateCoach, 700);
+  if(evaluate){ const r=$('#c-res'); if(r && listenMode()==='cloud') r.innerHTML='<p class="hint">جارٍ تحويل كلامك إلى نص…</p>'; listenIdle().then(()=>setTimeout(evaluateCoach, 300)); }
 }
 async function evaluateCoach(){
   const txt=$('#c-text').value.trim(), n=words(txt).length, mins=Math.max(0.25,(Date.now()-coach.t0)/60000), wpm=Math.round(n/mins), f=countFillers(txt);
@@ -183,6 +183,7 @@ const DICT = {
   mid:['I have been waiting for twenty minutes.','Could you send me the file by Thursday?','The meeting was moved to next week.','He would rather take the train than drive.','We need to finish this before the deadline.','I am not sure I understood the question.','The weather was better than we expected.','She has already booked the hotel.','Let me know if you have any questions.','They are planning a trip to the mountains.'],
   adv:['The results were consistent with our earlier findings.','Despite the delay, the project was completed on schedule.','Further research is needed to confirm this hypothesis.','The samples were cured for twenty-eight days before testing.','I would like to draw your attention to the second figure.','Had we known earlier, we would have changed the design.','The committee has yet to reach a final decision.','This approach significantly reduces both cost and time.','Could you elaborate on the limitations of your method?','The data suggest a strong relationship between the two variables.']
 };
+TALKIE_PHRASES.push(()=>[...DICT.beg, ...DICT.mid, ...DICT.adv]);
 let dict={list:[], i:0, plays:0};
 function renderDict(){
   if(!dict.list.length || dict.level!==S.level){ dict.list=shuffle(DICT[S.level]); dict.i=0; dict.level=S.level; }

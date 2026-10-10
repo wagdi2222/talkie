@@ -8,3 +8,6 @@
 - مهام يومية، دوري عائلي، لوحة ولي الأمر، بطاقة إنجاز أسبوعية
 
 يعمل من المتصفح: https://wagdi2222.github.io/talkie/
+
+## الأصوات
+تسجيلات Talkie في مجلد `audio/` مولّدة بمحرك [Piper](https://github.com/rhasspy/piper) (MIT) وصوت `en-us-libritts-high` المدرَّب على بيانات LibriTTS (CC BY 4.0، Zen et al. 2019). لإعادة توليدها بعد تعديل المحتوى: `tools/build_audio.py`.

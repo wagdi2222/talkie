@@ -1,6 +1,6 @@
 // Talkie offline shell: app files from cache, API calls always go to the network
-const CACHE = 'talkie-v6';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'kids.js', 'kids-grammar.js', 'kids-more.js', 'practice.js', 'family.js', 'quests.js', 'call.js', 'shadow.js', 'kids-world.js'];
+const CACHE = 'talkie-v7';
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'kids.js', 'kids-grammar.js', 'kids-more.js', 'practice.js', 'family.js', 'quests.js', 'call.js', 'shadow.js', 'kids-world.js', 'audio/index.json'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))));

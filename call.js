@@ -64,7 +64,7 @@ function renderStage(){
     if(!C.on) return;
     if(rec){ stopListening(); return; }                         // finish my sentence now
     if(C.phase==='thinking') return;
-    try{ speechSynthesis.cancel(); }catch(e){}                   // barge in while Sam talks
+    stopSpeaking(true);                                          // barge in while Sam talks
     listenTurn(true);
   };
 }
@@ -135,7 +135,7 @@ function listenTurn(byTap){
 }
 async function endCall(){
   if(!C.on) return;
-  C.on=false; clearInterval(C.tick); stopListening(true); try{ speechSynthesis.cancel(); }catch(e){}
+  C.on=false; clearInterval(C.tick); stopListening(true); stopSpeaking(true);
   const secs=Math.round((Date.now()-C.t0)/1000), mine=C.turns.filter(t=>t.who==='You').length;
   const v=$('#v-call');
   v.innerHTML='<div class="p-top"><button class="p-back" id="ce-back">→ المحادثة</button><b>انتهت المكالمة</b></div>'+

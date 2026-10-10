@@ -90,8 +90,9 @@ function pic(it, cls=''){
 function arVoice(){ try{ return speechSynthesis.getVoices().find(v=>/^ar/i.test(v.lang)); }catch(e){ return null; } }
 function sayAr(t, cb){
   const v=arVoice(); if(!v || !('speechSynthesis' in window)){ cb&&cb(); return; }
-  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.voice=v; u.lang=v.lang; u.rate=0.95;
-    let d=false; const f=()=>{ if(!d){ d=true; cb&&cb(); } }; u.onend=f; u.onerror=f; setTimeout(()=>speechSynthesis.speak(u),60); }catch(e){ cb&&cb(); }
+  try{ stopSpeaking(true); const u=new SpeechSynthesisUtterance(t); u.voice=v; u.lang=v.lang; u.rate=0.95;
+    let d=false, st=false; const f=()=>{ if(!d){ d=true; cb&&cb(); } }; u.onstart=()=>{ st=true; }; u.onend=f; u.onerror=f; setTimeout(()=>speechSynthesis.speak(u),60);
+    setTimeout(()=>{ if(!st) f(); }, 2500); }catch(e){ cb&&cb(); }
 }
 let AC=null;
 function tone(kind){
@@ -135,7 +136,7 @@ function oops(el){ tone('bad'); if(el){ el.classList.remove('k-shake'); void el.
 /* ---------- screens ---------- */
 function screen(title, sub){
   if(title!==curGame){ curGame=title; logPlay(title); }
-  stopGame(); try{ speechSynthesis.cancel(); }catch(e){}
+  stopGame(); stopSpeaking(true);
   root.innerHTML='<div class="k-top"><button class="k-back" aria-label="رجوع">→ رجوع</button><div class="k-title"><b>'+title+'</b>'+(sub?'<span>'+sub+'</span>':'')+'</div><span class="k-starpill">⭐ <b data-kstars>'+K.stars+'</b></span></div><div class="k-body"></div>';
   root.querySelector('.k-back').onclick=home;
   document.getElementById('main').scrollTop=0;
@@ -150,7 +151,7 @@ const GAMES = [
   {k:'say', ar:'قل الكلمة', en:'Say it', icon:'🎤', c:'k6', run:()=>chooseCat('قل الكلمة', sayGame)},
 ];
 function home(){
-  stopGame(); try{ speechSynthesis.cancel(); }catch(e){} curGame='';
+  stopGame(); stopSpeaking(true); curGame='';
   const shelf = STICKERS.slice(0, Math.min(STICKERS.length, Math.max(K.stickers+1, 5))).map((s,i)=> i<K.stickers ? '<span>'+s+'</span>' : '<span class="k-lock">?</span>').join('');
   const toNext = 10 - (K.stars % 10);
   root.innerHTML =
@@ -233,7 +234,7 @@ function abc(){
   body.querySelectorAll('.k-abc button').forEach(b=>b.onclick=()=>show(+b.dataset.i));
   body.querySelector('#k-let').onclick=()=>{ const on=body.querySelector('.k-abc .on'); if(on) show(+on.dataset.i); };
   let songOn=false;
-  body.querySelector('#k-song').onclick=()=>{ if(songOn){ songOn=false; try{speechSynthesis.cancel()}catch(e){} return; } songOn=true; say(ABC.map(a=>a[0]).join(', ')+'. Now I know my A B C!', ()=>{ songOn=false; addStars(1); }); };
+  body.querySelector('#k-song').onclick=()=>{ if(songOn){ songOn=false; stopSpeaking(true); return; } songOn=true; say(ABC.map(a=>a[0]).join(', ')+'. Now I know my A B C!', ()=>{ songOn=false; addStars(1); }); };
   cleanup=()=>{ songOn=false; };
   show(0);
 }
@@ -320,8 +321,7 @@ function heardMatch(heard, word){
 }
 function sayGame(cat){
   const body=screen('قل الكلمة', cat.ar);
-  if(!(window.SpeechRecognition||window.webkitSpeechRecognition)){
-    body.innerHTML='<p class="k-hint">هذه اللعبة تحتاج متصفحًا يدعم الميكروفون، مثل Safari على iPhone أو Chrome على Android.</p>'; return; }
+  if(!canListen()) return sayEcho(cat, body);
   const ROUNDS=6, order=shuffle(cat.items).slice(0,ROUNDS); let r=0, score=0, tries=0;
   body.innerHTML='<div class="k-card" id="k-sc"></div><div class="k-row"><button class="k-btn ghost" id="k-h">🔊 اسمع</button></div><div class="k-micwrap"><button class="mic k-mic" id="k-mic" aria-label="تكلم"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><div class="k-heard" id="k-hd">اضغط الميكروفون وقل الكلمة</div></div><div class="k-progress" id="k-pr"></div>';
   const prog=()=>{ body.querySelector('#k-pr').innerHTML=Array.from({length:ROUNDS},(_,k)=>'<i class="'+(k<r?'done':'')+'"></i>').join(''); };
@@ -343,6 +343,48 @@ function sayGame(cat){
   show();
 }
 
+/* no speech recognition on this device and no Gemini key: record the child, play it back after the model voice, child confirms */
+function sayEcho(cat, body){
+  const ROUNDS=6, order=shuffle(cat.items).slice(0,ROUNDS); let r=0, recUrl=null, mr=null, stream=null, tmr=null;
+  const canRec=!!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+  body.innerHTML='<div class="k-card" id="k-sc"></div>'+
+    '<div class="k-micwrap">'+(canRec?'<button class="mic k-mic" id="e-rec" aria-label="سجّل"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>':'')+
+    '<div class="k-heard" id="e-hd"></div></div>'+
+    '<div class="k-row"><button class="k-btn ghost" id="e-model">🔊 اسمع الكلمة</button><button class="k-btn ghost" id="e-mine" hidden>👂 اسمع صوتي</button></div>'+
+    '<div class="k-row"><button class="k-btn big" id="e-ok">👍 قلتها!</button></div><div class="k-progress" id="e-pr"></div>';
+  const $b=id=>body.querySelector(id);
+  const stopRec=()=>{ clearTimeout(tmr); try{ mr && mr.state!=='inactive' && mr.stop(); }catch(e){} };
+  cleanup=()=>{ stopRec(); try{ stream && stream.getTracks().forEach(t=>t.stop()); }catch(e){} if(recUrl) URL.revokeObjectURL(recUrl); };
+  const show=()=>{
+    if(r>=ROUNDS) return finish(body, ROUNDS, ROUNDS, ()=>sayGame(cat));
+    const it=order[r]; if(recUrl){ URL.revokeObjectURL(recUrl); recUrl=null; }
+    $b('#k-sc').innerHTML=pic(it,'xl')+'<b class="k-word">'+esc(it.en)+'</b><span class="k-ar">'+esc(it.ar)+'</span>';
+    $b('#e-hd').textContent = canRec ? 'اسمع الكلمة، ثم اضغط الميكروفون وقلها' : 'اسمع الكلمة وقلها بصوت عالٍ';
+    $b('#e-mine').hidden=true;
+    $b('#e-pr').innerHTML=Array.from({length:ROUNDS},(_,k)=>'<i class="'+(k<r?'done':'')+'"></i>').join('');
+    say(it.en);
+  };
+  $b('#e-model').onclick=()=>say(order[r].en);
+  $b('#e-mine').onclick=()=>{ if(!recUrl) return; stopSpeaking(true); try{ AUD.src=recUrl; AUD.playbackRate=1; AUD.play().catch(()=>{}); }catch(e){} };
+  $b('#e-ok').onclick=()=>{ stopRec(); addStars(1); cheer(order[r].en); r++; setTimeout(show, 1600); };
+  const recBtn=$b('#e-rec');
+  if(recBtn) recBtn.onclick=async()=>{
+    if(mr && mr.state==='recording'){ stopRec(); return; }
+    stopSpeaking(true);
+    try{ stream = stream || await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}}); }
+    catch(e){ $b('#e-hd').textContent='اسمح باستخدام الميكروفون، أو قل الكلمة واضغط «قلتها»'; return; }
+    const chunks=[]; mr=new MediaRecorder(stream);
+    mr.ondataavailable=e=>{ if(e.data && e.data.size) chunks.push(e.data); };
+    mr.onstop=()=>{ recBtn.classList.remove('live'); if(!chunks.length) return;
+      if(recUrl) URL.revokeObjectURL(recUrl); recUrl=URL.createObjectURL(new Blob(chunks,{type:mr.mimeType||'audio/webm'}));
+      $b('#e-mine').hidden=false; $b('#e-hd').textContent='اسمع صوتك، هل يشبه الكلمة؟';
+      setTimeout(()=>{ try{ AUD.src=recUrl; AUD.playbackRate=1; AUD.play().catch(()=>{}); }catch(e){} }, 200); };
+    mr.start(); recBtn.classList.add('live'); $b('#e-hd').textContent='أسمعك… قل الكلمة';
+    tmr=setTimeout(stopRec, 2600);
+  };
+  show();
+}
+
 /* end of round */
 function finish(body, score, total, again, extra){
   logPlay(curGame, score, total);
@@ -355,6 +397,18 @@ function finish(body, score, total, again, extra){
   body.querySelector('#k-again').onclick=again; body.querySelector('#k-home').onclick=home;
 }
 
+TALKIE_PHRASES.push(()=>{
+  const out=[], LN=LETTER_NAME;
+  CATS.forEach(c=>c.items.forEach(it=>out.push(it.en, 'Where is the '+it.en+'?')));
+  PRAISE.forEach(([en])=>out.push(en));
+  out.push('No, that is', 'Try again.', 'Good try! Listen:', 'You got a new sticker!', 'Perfect! You are a superstar!', 'Well done! Let us play again!');
+  ABC.forEach(([L,w])=>{ out.push({t:L, s:LN[L]+'.', exact:true}, {t:L+'. '+L+' is for '+w+'.', s:LN[L]+'. '+LN[L]+' is for '+w+'.'}); });
+  out.push({t:ABC.map(a=>a[0]).join(', ')+'. Now I know my A B C!', s:ABC.map(a=>LN[a[0]]).join(', ')+'. Now I know my ABC!'});
+  CATS.find(c=>c.k==='colors').items.forEach(c=>out.push('Pop the '+c.en+' balloon!', 'That is '+c.en+'.'));
+  'ABCDEFGHIJKLMNOPRSTWYZ'.split('').forEach(L=>out.push({t:'Pop the letter '+L+'!', s:'Pop the letter '+LN[L]+'!'}, {t:'That is '+L+'.', s:'That is '+LN[L]+'.'}));
+  for(let n=1;n<=10;n++) out.push('Pop the number '+n+'!', 'That is '+n+'.');
+  return out;
+});
 window.kidsHome = home;
 window.KidsAPI = {K, saveK, STICKERS, flash, listenGame, memory, sayGame, abc, balloons, chooseCat, CATS, OPP, pic, logMiss, logPlay, screen, home, cheer, oops, addStars, finish, say, sayAr, shuffle, pick, rnd, tone, esc, setCleanup:f=>{cleanup=f;},
   refresh:()=>{ if(root.querySelector('.k-hero')) home(); }};

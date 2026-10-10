@@ -91,7 +91,7 @@ function allowedToday(pid){ const lim=F.limits[pid]; if(!lim) return Infinity; r
 function checkLimit(){
   if(!me.kid || document.querySelector('.f-limit')) return;
   if(usedToday(me.id) < allowedToday(me.id)) return;
-  window.kidsStop && kidsStop(); try{ speechSynthesis.cancel(); }catch(e){}
+  window.kidsStop && kidsStop(); stopSpeaking(true);
   const o=document.createElement('div'); o.className='f-limit';
   o.innerHTML='<div class="big">🌙</div><b>انتهى وقت اللعب اليوم</b><span dir="ltr">See you tomorrow, '+esc(me.name)+'!</span><span style="font-family:var(--body)">أحسنت اليوم! نلتقي غدًا.</span><button class="k-btn ghost" id="l-more">ولي الأمر: أضف 15 دقيقة</button>';
   document.body.append(o);

@@ -179,6 +179,19 @@ function wordOrder(){
   }
 }
 
+TALKIE_PHRASES.push(()=>{
+  const out=['I','you','he','she','it','we','they','I am','He is. She is. It is.','You are. We are. They are.',
+    'an apple. an egg. an orange.','a cat. a dog. a ball.','an apple','an egg','a cat','a ball',
+    'one cat, two cats','one box, two boxes','one child, two children','one foot, two feet','I like apples.'];
+  PRON.forEach(([v,sent,ans])=>out.push(sent.replace('___',ans)));
+  BE.forEach(([v,sent,ans])=>out.push(sent.replace('___',ans)));
+  ART.forEach(([v,w])=>out.push('This is '+(/^[aeiou]/.test(w)?'an':'a')+' '+w+'.'));
+  PLU.forEach(([v,one,two])=>out.push('One '+one+', two '+two+'.'));
+  OBJ.forEach(([o,w])=>POS.forEach(([p])=>out.push('The '+w+' is '+p+' the box.')));
+  POS.forEach(([p])=>out.push('The ball is '+p+' the box.'));
+  SENT.forEach(([v,t])=>{ out.push(t); t.replace(/[.,]/g,'').split(' ').forEach(w=>out.push(w)); });
+  return out;
+});
 window.KIDS_EXTRA = (window.KIDS_EXTRA||[]).concat([{title:'القواعد', games:[
   {k:'pron', ar:'الضمائر', en:'he · she · it', icon:'👫', c:'k2', run:pronouns},
   {k:'be', ar:'am · is · are', en:'to be', icon:'✨', c:'k4', run:beVerb},

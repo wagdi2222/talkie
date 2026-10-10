@@ -7,26 +7,12 @@ const LINES = {
   adv:["That's a fair point, but I see it a little differently.","To be honest, I hadn't thought about it that way.",'Let me walk you through the main findings.','As you can see on this slide, the trend is quite clear.',"I'd like to build on what you just said.","The short answer is yes, but there's a catch.",'We should take that into account before we decide.','In a nutshell, it saves time and money.','If I remember correctly, the deadline is next Friday.',"I couldn't agree more."]
 };
 const SPEEDS = [[0.7,'🐢','بطيء'],[0.85,'🚶','متوسط'],[1.0,'🏃','طبيعي']];
+TALKIE_PHRASES.push(()=>[...LINES.beg, ...LINES.mid, ...LINES.adv]);
 let Sh = {list:[], i:0, stage:0, mode:'echo', hide:false, level:null, busy:false, tries:0};
 
-function voiceFor(){ const vs=(speechSynthesis.getVoices()||[]).filter(v=>/^en/i.test(v.lang)); return vs.find(v=>v.voiceURI===S.voice) || vs[0] || null; }
-/* speak and light up each word in time; boundary events where available, otherwise a timed estimate */
+/* speak and light up each word in time (device voice, Talkie recording or Gemini voice) */
 function speakLit(text, rate, spans, done){
-  try{ speechSynthesis.cancel(); }catch(e){}
-  stopListening(true);
-  const starts=[]; let pos=0; text.split(' ').forEach(w=>{ starts.push(pos); pos+=w.length+1; });
-  let gotB=false, k=0, timer=null, finished=false;
-  const mark=i=>spans.forEach((s,j)=>s.classList.toggle('on', j===i));
-  const fin=()=>{ if(finished) return; finished=true; clearInterval(timer); mark(-1); done&&done(); };
-  try{
-    const u=new SpeechSynthesisUtterance(text); const v=voiceFor(); if(v){ u.voice=v; u.lang=v.lang; } else u.lang='en-US';
-    u.rate=rate;
-    u.onboundary=e=>{ if(e.name && e.name!=='word') return; gotB=true; clearInterval(timer); let i=0; while(i+1<starts.length && starts[i+1]<=e.charIndex) i++; mark(i); };
-    u.onstart=()=>{ const step=Math.max(220, 380/rate); timer=setInterval(()=>{ if(gotB){ clearInterval(timer); return; } mark(k++); if(k>spans.length) clearInterval(timer); }, step); };
-    u.onend=fin; u.onerror=fin;
-    setTimeout(()=>{ try{ speechSynthesis.speak(u); }catch(e){ fin(); } }, 60);
-    setTimeout(()=>{ if(!finished && !speechSynthesis.speaking) fin(); }, 4000 + text.length*120/rate);  // safety net if the phone never reports the end
-  }catch(e){ fin(); }
+  speakWords(text, rate, i=>spans.forEach((s,j)=>s.classList.toggle('on', j===i)), done);
 }
 function score(heard, target){
   const t=words(target), h=words(heard), n=t.length, m=h.length;
@@ -55,7 +41,7 @@ function render(){
   const mic=v.querySelector('#sh-mic'); if(mic) mic.onclick=()=>{ if(rec){ stopListening(); return; } repeat(true); };
 }
 function spans(){ return [...document.querySelectorAll('#sh-line .s-w')]; }
-function stopAll(){ Sh.busy=false; try{ speechSynthesis.cancel(); }catch(e){} stopListening(true); }
+function stopAll(){ Sh.busy=false; stopSpeaking(true); stopListening(true); }
 function playThenRepeat(){
   if(Sh.busy) return; Sh.busy=true;
   const line=Sh.list[Sh.i]; $('#sh-msg').textContent='اسمع…'; $('#sh-heard').textContent='';

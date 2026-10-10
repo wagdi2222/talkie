@@ -286,6 +286,10 @@ body.kidmode #gear{display:none}
 .k-done>span{font-family:var(--body);color:var(--muted);direction:ltr}
 .k-stars3{font-size:2.4rem;letter-spacing:4px}
 .k-big{font-size:5rem;line-height:1}
+.diag{display:flex;flex-direction:column;gap:6px;background:var(--surface-2);border-radius:14px;padding:10px 12px;font-size:.85rem}
+.diag div{display:flex;justify-content:space-between;gap:10px}
+.diag span{color:var(--muted)}
+.mic.busy,.icon-btn.busy{opacity:.6;animation:pulse 1s infinite}
 .k-cheer{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);background:var(--sun);color:var(--sun-ink);border-radius:28px;padding:14px 28px;text-align:center;z-index:20;font-family:var(--display);animation:cheer 1.3s forwards;pointer-events:none}
 .k-cheer b{display:block;font-size:2rem;line-height:1.2}
 .k-cheer span{direction:ltr;display:block;font-size:1rem}
@@ -348,6 +352,9 @@ body.kidmode #gear{display:none}
 .t-strip button{flex:none;width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-family:var(--display);font-weight:800;font-size:1.2rem;color:var(--ink)}
 .t-strip button.done{background:var(--good-soft);border-color:var(--good);color:var(--good)}
 .t-strip button.on{outline:3px solid var(--accent);outline-offset:1px}
+.k-btn.glow{animation:glow 1.1s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--accent) 30%,transparent);transform:scale(1.05)}}
+#t-c{cursor:crosshair}
 .s-page{background:var(--surface);border:2px solid var(--line);border-radius:28px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:300px;justify-content:center}
 .s-pic{font-size:5.5rem;line-height:1.1;letter-spacing:6px;text-align:center}
 .s-text{direction:ltr;font-family:var(--display);font-weight:800;font-size:1.75rem;line-height:1.45;text-align:center;text-wrap:balance}
@@ -652,13 +659,28 @@ body.kidmode #gear{display:none}
         <select id="voice"></select>
         <label class="label" for="rate-sl">سرعة الكلام</label>
         <div class="range"><span>بطيء</span><input type="range" id="rate-sl" min="0.6" max="1.2" step="0.05"><span>سريع</span></div>
-        <button class="btn ghost" id="test-voice">جرّب الصوت</button>
+        <label class="label" for="vsrc">مصدر الصوت</label>
+        <select id="vsrc">
+          <option value="auto">تلقائي (الأفضل لكل جهاز)</option>
+          <option value="device">صوت الجهاز</option>
+          <option value="clips">تسجيلات Talkie (تعمل على هواوي وكل الأجهزة)</option>
+        </select>
+        <label class="label" for="msrc">التعرف على كلامك</label>
+        <select id="msrc">
+          <option value="auto">تلقائي</option>
+          <option value="cloud">عبر Gemini (لأجهزة هواوي، يحتاج مفتاح Gemini)</option>
+        </select>
+        <div class="actions"><button class="btn ghost" id="test-voice">جرّب الصوت</button><button class="btn ghost" id="diag">🔧 فحص الصوت والميكروفون</button></div>
+        <div class="diag" id="diag-out" hidden></div>
+        <button class="btn ghost" id="dl-audio">⬇️ نزّل الأصوات للعمل دون إنترنت (6 ميغابايت)</button>
+        <div class="hint" style="text-align:start">تسجيلات Talkie مولّدة بمحرك Piper وصوت مدرَّب على بيانات LibriTTS (رخصة CC BY 4.0).</div>
       </div>
       <div class="card" id="install-card">
         <h2>أضفه إلى الشاشة الرئيسية</h2>
         <ol>
           <li><b>iPhone:</b> من Safari اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».</li>
           <li><b>Android:</b> من Chrome افتح القائمة ⋮ ثم «تثبيت التطبيق».</li>
+          <li><b>هواوي (HarmonyOS):</b> من متصفح Huawei Browser افتح القائمة ثم «إضافة إلى الشاشة الرئيسية». ولتفعيل الميكروفون أضف مفتاح Gemini المجاني في الأعلى.</li>
         </ol>
       </div>
       <button class="btn ghost" id="back">رجوع</button>
@@ -687,7 +709,7 @@ const store = {
 };
 
 /* ---------- settings ---------- */
-const S = Object.assign({provider:'gemini', key:'', gkey:'', model:'claude-haiku-5-5', gmodel:'gemini-flash-latest', voice:'', rate:0.95, auto:true, level:'mid'}, store.get('talkie-settings', {}));
+const S = Object.assign({provider:'gemini', key:'', gkey:'', model:'claude-haiku-5-5', gmodel:'gemini-flash-latest', voice:'', rate:0.95, auto:true, level:'mid', voiceSrc:'auto', micSrc:'auto'}, store.get('talkie-settings', {}));
 const MODELS = {
   gemini: [['gemini-flash-latest','Gemini Flash (مجاني)'],['gemini-3.5-flash-lite','Gemini Flash Lite (أسرع، مجاني)']],
   claude: [['claude-haiku-5-5','سريع واقتصادي (Haiku)'],['claude-sonnet-5-5','أذكى وأدق (Sonnet)']]
@@ -720,60 +742,305 @@ $$('[data-level]').forEach(el=>{
 function paintLevels(){ $$('[data-level] button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.k===S.level)); }
 paintLevels();
 
-/* ---------- voice out (text to speech) ---------- */
+/* every fixed sentence the app speaks is registered here; tools/build_audio.py records them as Talkie clips */
+window.TALKIE_PHRASES = [];
+// how the recorder should write each letter so it is said as the letter's name (a capital works for all but A, which reads as the article)
+const LETTER_NAME = Object.fromEntries('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(L=>[L, L==='A'?'Eigh':L]));
+/* ---------- voice out: device voice → Talkie recordings → Gemini voice ---------- */
+// Many Huawei/HarmonyOS tablets have no English device voice, so every fixed sentence also ships as a recorded clip.
 const TTS = 'speechSynthesis' in window;
 let voices=[];
+const VO = {clips:{}, exact:{}, clipsReady:false, devState:'unknown', gemModel:'', gemBroken:false, seq:0, cur:null, last:'', warned:false, gcache:new Map()};
+try{ VO.gemModel = localStorage.getItem('talkie-gtts') || ''; }catch(e){}
+const AUD = new Audio(); AUD.preload='auto';
+try{ AUD.preservesPitch=true; AUD.mozPreservesPitch=true; AUD.webkitPreservesPitch=true; }catch(e){}
+function vnorm(t){ return String(t||'').toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim(); }
+function vhash(s){ let h=0x811c9dc5; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } return h.toString(16).padStart(8,'0'); }
+fetch('audio/index.json').then(r=>r.ok?r.json():null).then(d=>{ if(d){ VO.clips=d.clips||{}; VO.exact=d.exact||{}; VO.clipsReady=true; } }).catch(()=>{});
 function loadVoices(){
   if(!TTS) return;
-  voices = speechSynthesis.getVoices().filter(v=>/^en[-_]/i.test(v.lang));
+  try{ voices = speechSynthesis.getVoices().filter(v=>/^en[-_]/i.test(v.lang)); }catch(e){ voices=[]; }
   const pref = v => (/en[-_]US/i.test(v.lang)?2:/en[-_]GB/i.test(v.lang)?1:0) + (/Samantha|Google US|Natural|Premium|Enhanced|Ava|Allison|Daniel/i.test(v.name)?3:0);
   voices.sort((a,b)=>pref(b)-pref(a));
-  const sel=$('#voice'); sel.innerHTML = voices.map(v=>'<option value="'+esc(v.voiceURI)+'">'+esc(v.name)+' ('+esc(v.lang)+')</option>').join('') || '<option value="">الصوت الافتراضي</option>';
+  const sel=$('#voice'); if(!sel) return;
+  sel.innerHTML = voices.map(v=>'<option value="'+esc(v.voiceURI)+'">'+esc(v.name)+' ('+esc(v.lang)+')</option>').join('') || '<option value="">لا يوجد صوت إنجليزي في الجهاز</option>';
   if(S.voice && voices.some(v=>v.voiceURI===S.voice)) sel.value=S.voice;
 }
-if(TTS){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
-// iPhone only allows speech that starts from a tap: unlock on the first touch
+if(TTS){ loadVoices(); try{ speechSynthesis.onvoiceschanged=loadVoices; }catch(e){} }
+function makeWav(int16, rate){
+  const b=new ArrayBuffer(44+int16.length*2), v=new DataView(b), w=(o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); };
+  w(0,'RIFF'); v.setUint32(4,36+int16.length*2,true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+  v.setUint32(24,rate,true); v.setUint32(28,rate*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,'data'); v.setUint32(40,int16.length*2,true);
+  new Int16Array(b,44).set(int16); return new Blob([b],{type:'audio/wav'});
+}
+const SILENT_URL = URL.createObjectURL(makeWav(new Int16Array(800), 8000));
+// phones only allow sound that starts from a tap: unlock both the device voice and the audio player on the first touch
 let unlocked=false;
-function unlock(){ if(unlocked||!TTS) return; unlocked=true; try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); }catch(e){} }
-['touchend','click'].forEach(ev=>document.addEventListener(ev, unlock, {capture:true, once:true}));
+function unlock(){
+  if(unlocked) return; unlocked=true;
+  try{ if(TTS){ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); } }catch(e){}
+  try{ if(!VO.cur){ AUD.src=SILENT_URL; const p=AUD.play(); p&&p.catch&&p.catch(()=>{}); } }catch(e){}
+}
+['touchend','click','pointerup'].forEach(ev=>document.addEventListener(ev, unlock, {capture:true, once:true}));
 
-function speak(text, rate, onDone){
-  if(!TTS){ onDone&&onDone(); return; }
-  stopListening(true);
+function devAvailable(){ return TTS && VO.devState!=='broken' && (voices.length>0 || VO.devState==='ok'); }
+function planClips(text){
+  if(!VO.clipsReady) return null;
+  const key=vnorm(text); if(!key) return null;
+  if(VO.exact[key]) return [{id:VO.exact[key], n:key.split(' ').length}];
+  const t=key.split(' '), out=[]; let i=0;
+  while(i<t.length){
+    let j=Math.min(t.length,i+16), hit=null;
+    for(;j>i;j--){ const k=t.slice(i,j).join(' '); if(VO.clips[k]){ hit=k; break; } }
+    if(!hit) return null;
+    out.push({id:VO.clips[hit], n:j-i}); i=j;
+  }
+  return out;
+}
+function hardStop(){ try{ if(TTS && (speechSynthesis.speaking||speechSynthesis.pending)) speechSynthesis.cancel(); }catch(e){} try{ AUD.onended=AUD.onerror=AUD.onplay=AUD.onplaying=null; AUD.pause(); }catch(e){} const l=$('#led'); l&&l.classList.remove('on'); }
+// silent=true: the listener took over, so the interrupted speech must not run its "done" step
+function stopSpeaking(silent){ VO.seq++; const c=VO.cur; VO.cur=null; hardStop(); if(c && !silent) setTimeout(c.fin,0); }
+function speakWords(text, rate, onWord, onDone){
+  text=String(text||'').trim();
+  const prev=VO.cur; VO.cur=null; const my=++VO.seq; hardStop(); if(prev) setTimeout(prev.fin,0);
+  if(typeof stopListening==='function') stopListening(true);
+  if(!text){ onDone&&setTimeout(onDone,0); return; }
+  rate = rate || S.rate;
+  const words=text.split(/\s+/);
+  const tokWord=[]; words.forEach((w,wi)=>{ const n=vnorm(w).split(' ').filter(Boolean).length; for(let k=0;k<n;k++) tokWord.push(wi); });
+  let finished=false;
+  const fin=()=>{ if(finished) return; finished=true; if(VO.cur && VO.cur.seq===my) VO.cur=null; const l=$('#led'); l&&l.classList.remove('on'); onWord&&onWord(-1); onDone&&onDone(); };
+  VO.cur={seq:my, fin};
+  const plan=planClips(text), mode=S.voiceSrc||'auto', order=[];
+  if(mode==='clips'){ if(plan) order.push('clips'); order.push('gemini','device'); }
+  else if(mode==='device'){ order.push('device'); if(plan) order.push('clips'); order.push('gemini'); }
+  else { if(devAvailable()) order.push('device'); if(plan) order.push('clips'); order.push('gemini'); if(!order.includes('device')) order.push('device'); }
+  const next=()=>{
+    if(VO.seq!==my) return;
+    const eng=order.shift();
+    if(!eng){ noVoiceWarn(); fin(); return; }
+    if(eng==='device') viaDevice(text, rate, my, onWord, fin, next);
+    else if(eng==='clips') playUrls(plan.map(p=>({url:'audio/'+p.id+'.mp3', n:p.n})), rate, my, onWord?(t=>onWord(tokWord[t]??-1)):null, fin, next, 'clips');
+    else viaGemini(text, rate, my, onWord, fin, next);
+  };
+  next();
+}
+function speak(text, rate, onDone){ speakWords(text, rate, null, onDone); }
+function viaDevice(text, rate, my, onWord, fin, next){
+  if(!TTS){ next(); return; }
+  let gone=false, started=false, gotB=false, k=0, timer=null;
+  const handoff=()=>{ if(gone) return; gone=true; clearInterval(timer); next(); };
+  const end=()=>{ if(gone) return; gone=true; clearInterval(timer); if(VO.seq===my) fin(); };
   try{
-    if(speechSynthesis.speaking||speechSynthesis.pending) speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
     const v=voices.find(v=>v.voiceURI===S.voice)||voices[0];
-    if(v){ u.voice=v; u.lang=v.lang; } else u.lang='en-US';
-    u.rate = rate || S.rate;
-    let done=false; const fin=()=>{ if(done) return; done=true; $('#led').classList.remove('on'); onDone&&onDone(); };
-    u.onstart=()=>$('#led').classList.add('on');
-    u.onend=fin; u.onerror=fin;
-    setTimeout(()=>{ try{ speechSynthesis.resume(); speechSynthesis.speak(u); }catch(e){ fin(); } }, 60);
-  }catch(e){ onDone&&onDone(); }
+    u.lang = v ? v.lang : 'en-US';
+    if(v){ try{ u.voice=v; }catch(e){} }
+    u.rate=rate;
+    const parts=text.split(' '), starts=[]; let pos=0; parts.forEach(w=>{ starts.push(pos); pos+=w.length+1; });
+    u.onstart=()=>{ if(gone) return; started=true; VO.devState='ok'; VO.last='device'; const l=$('#led'); l&&l.classList.add('on');
+      if(onWord) timer=setInterval(()=>{ if(gotB||gone){ clearInterval(timer); return; } onWord(Math.min(k++, parts.length-1)); }, Math.max(220, 380/rate)); };
+    u.onboundary=e=>{ if(gone || !onWord || (e.name && e.name!=='word')) return; gotB=true; clearInterval(timer); let i=0; while(i+1<starts.length && starts[i+1]<=e.charIndex) i++; onWord(i); };
+    u.onend=()=>{ if(started) end(); else { VO.devState='broken'; handoff(); } };
+    u.onerror=()=>{ if(started) end(); else { VO.devState='broken'; handoff(); } };
+    setTimeout(()=>{ if(gone || VO.seq!==my) return; try{ speechSynthesis.resume(); speechSynthesis.speak(u); }catch(e){ handoff(); } }, 60);
+    // nothing within a few seconds: this device cannot speak English, so move on to the recordings
+    setTimeout(()=>{ if(!started && !gone && VO.seq===my){ VO.devState='broken'; try{ speechSynthesis.cancel(); }catch(e){} handoff(); } }, 2600);
+    setTimeout(()=>{ if(started && !gone && VO.seq===my && !speechSynthesis.speaking) end(); }, 4000 + text.length*130/rate);
+  }catch(e){ handoff(); }
+}
+// plays a list of audio files one after another; onTok(i) gets the spoken word position for highlighting
+function playUrls(list, rate, my, onTok, fin, next, label){
+  const total=list.reduce((a,p)=>a+p.n,0); let si=0, base=0, any=false;
+  const seg=()=>{
+    if(VO.seq!==my) return;
+    if(si>=list.length){ fin(); return; }
+    const it=list[si]; let started=false;
+    AUD.onended=AUD.onerror=AUD.onplay=AUD.onplaying=null;
+    AUD.src=it.url;
+    try{ AUD.playbackRate=Math.max(0.5, Math.min(1.6, rate/0.95)); }catch(e){}
+    AUD.onplaying=()=>{ started=true; any=true; VO.last=label; const l=$('#led'); l&&l.classList.add('on'); };
+    if(onTok){ AUD.onplay=()=>{ const tick=()=>{ if(VO.seq!==my || AUD.paused || AUD.ended) return; const d=AUD.duration||1; onTok(Math.min(total-1, base+Math.floor(Math.min(0.999, AUD.currentTime/d)*it.n))); requestAnimationFrame(tick); }; requestAnimationFrame(tick); }; }
+    AUD.onended=()=>{ if(VO.seq!==my) return; base+=it.n; si++; setTimeout(seg, list.length>1?70:0); };
+    AUD.onerror=()=>{ if(VO.seq!==my) return; if(!any) next(); else { base+=it.n; si++; seg(); } };
+    const p=AUD.play();
+    if(p && p.catch) p.catch(err=>{ if(VO.seq!==my) return; if(!any){ if(err && err.name==='NotAllowedError'){ toast('اضغط أي زر ليعمل الصوت'); fin(); } else next(); } });
+  };
+  seg();
+}
+async function viaGemini(text, rate, my, onWord, fin, next){
+  if(!S.gkey || VO.gemBroken || text.length>700){ next(); return; }
+  try{
+    const url=await gemTTS(text);
+    if(VO.seq!==my) return;
+    if(!url){ next(); return; }
+    const n=text.split(/\s+/).length;
+    playUrls([{url, n}], rate, my, onWord, fin, next, 'gemini');
+  }catch(e){ if(VO.seq===my) next(); }
+}
+async function gemTTS(text){
+  if(VO.gcache.has(text)) return VO.gcache.get(text);
+  const tried=new Set(), models=[VO.gemModel,'gemini-3.8-flash-tts','gemini-3.8-flash-lite-tts','gemini-3.1-flash-tts-preview','gemini-2.5-flash-preview-tts'].filter(m=>m && !tried.has(m) && tried.add(m));
+  for(const m of models){
+    let res, data;
+    try{
+      res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(m)+':generateContent', {method:'POST', headers:{'content-type':'application/json','x-goog-api-key':S.gkey},
+        body:JSON.stringify({contents:[{role:'user', parts:[{text:'Read this aloud in a warm, clear, friendly voice: '+text}]}],
+          generationConfig:{responseModalities:['AUDIO'], speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:'Kore'}}}}})});
+      data=await res.json().catch(()=>({}));
+    }catch(e){ return null; }
+    if(res.status===429 || res.status===401 || res.status===403) return null;
+    if(!res.ok) continue;
+    const part=((data.candidates||[])[0]?.content?.parts||[]).find(p=>p.inlineData||p.inline_data);
+    const inl=part && (part.inlineData||part.inline_data); if(!inl || !inl.data) continue;
+    const mime=inl.mimeType||inl.mime_type||'', bin=atob(inl.data), bytes=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    let blob;
+    if(/pcm|L16/i.test(mime)){ const r=+(/rate=(\d+)/.exec(mime)||[0,24000])[1]; blob=makeWav(new Int16Array(bytes.buffer, 0, bytes.length>>1), r); }
+    else blob=new Blob([bytes],{type:mime||'audio/wav'});
+    const url=URL.createObjectURL(blob);
+    VO.gemModel=m; try{ localStorage.setItem('talkie-gtts', m); }catch(e){}
+    if(VO.gcache.size>30){ const k=VO.gcache.keys().next().value; URL.revokeObjectURL(VO.gcache.get(k)); VO.gcache.delete(k); }
+    VO.gcache.set(text, url); return url;
+  }
+  VO.gemBroken=true; return null;
+}
+function noVoiceWarn(){
+  if(VO.warned) return; VO.warned=true;
+  toast(S.gkey ? 'تعذّر تشغيل الصوت لهذه الجملة.' : 'لا يوجد صوت إنجليزي في هذا الجهاز لهذه الجملة. أضف مفتاح Gemini المجاني من الإعدادات.');
 }
 const SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h4l5 4V6L8 10zM16 9a4 4 0 0 1 0 6"/></svg>';
 
-/* ---------- voice in (speech recognition) ---------- */
+/* ---------- voice in: device recognition, or recording + Gemini transcription ---------- */
+// Huawei/HarmonyOS browsers usually have no speech recognition; recording and transcribing with Gemini covers them.
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const CAN_REC = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
 let rec=null, recBtn=null;
+const LS = {srBroken:false, pending:0, warned:false};
+function listenMode(){
+  if(S.micSrc==='cloud' && CAN_REC && S.gkey) return 'cloud';
+  if(SR && !LS.srBroken) return 'native';
+  if(CAN_REC && S.gkey) return 'cloud';
+  return 'none';
+}
+function canListen(){ return listenMode()!=='none'; }
+function listenIdle(){ return new Promise(res=>{ const t0=Date.now(); const ck=()=>{ if((LS.pending<=0 && !(rec && rec.cloud)) || Date.now()-t0>30000) res(); else setTimeout(ck,120); }; setTimeout(ck,60); }); }
 function stopListening(abort){
   if(rec){ const r=rec; if(abort) r._aborted=true; try{ abort ? r.abort() : r.stop(); }catch(e){} }
 }
-function listen({btn, continuous=false, onText, onEnd, quiet=false}){
-  if(!SR){ toast('هذا المتصفح لا يدعم الميكروفون. استخدم Safari أو Chrome.'); return; }
+function noMicHelp(){
+  if(LS.warned) return; LS.warned=true;
+  toast(!CAN_REC ? 'هذا المتصفح لا يسمح بالميكروفون. جرّب متصفحًا آخر.' : 'لتفعيل الميكروفون في هذا الجهاز أضف مفتاح Gemini المجاني من الإعدادات ⚙️');
+}
+function listen(opts){
+  const {btn, continuous=false, onText, onEnd, quiet=false} = opts;
+  stopSpeaking(true);
   if(rec){ stopListening(true); }
-  if(TTS){ try{ speechSynthesis.cancel(); }catch(e){} }
+  const mode=listenMode();
+  if(mode==='cloud'){ cloudListen(opts); return; }
+  if(mode==='none'){ noMicHelp(); setTimeout(()=>onEnd&&onEnd('', 'no-recognizer'),0); return; }
   const r=new SR(); r.lang='en-US'; r.interimResults=true; r.continuous=continuous; r.maxAlternatives=1;
   let text='', errored='';
   r.onresult=e=>{ let s=''; for(let i=0;i<e.results.length;i++) s+=e.results[i][0].transcript+' '; text=s.replace(/\s+/g,' ').trim(); onText&&onText(text); };
   r.onerror=e=>{ errored=e.error;
-    if(quiet && e.error==='not-allowed'){ $('#chat-hint').textContent='اضغط الميكروفون للرد على Sam.'; }
-    else if(e.error==='not-allowed'||e.error==='service-not-allowed') toast('اسمح بالميكروفون والتعرف على الكلام من إعدادات الجوال.');
-    else if(e.error==='network') toast('التعرف على الصوت يحتاج اتصالًا بالإنترنت.'); };
-  r.onend=()=>{ if(rec===r){ rec=null; } btn&&btn.classList.remove('live'); $('#led').classList.remove('rec'); if(!r._aborted) onEnd&&onEnd(text, errored); };
+    // the browser has the feature but no working service behind it (common on Huawei): switch to recording + Gemini
+    if(!text && ['network','service-not-allowed','language-not-supported'].includes(e.error) && CAN_REC && S.gkey){ LS.srBroken=true; r._handoff=true; return; }
+    if(quiet && e.error==='not-allowed'){ const h=$('#chat-hint'); if(h) h.textContent='اضغط الميكروفون للرد على Sam.'; }
+    else if(e.error==='not-allowed') toast('اسمح باستخدام الميكروفون من إعدادات المتصفح.');
+    else if(e.error==='service-not-allowed' || e.error==='network' || e.error==='language-not-supported'){ LS.srBroken=true; noMicHelp(); } };
+  r.onend=()=>{ if(rec===r){ rec=null; } btn&&btn.classList.remove('live'); $('#led').classList.remove('rec');
+    if(r._handoff && !r._aborted){ cloudListen(opts); return; }
+    if(!r._aborted) onEnd&&onEnd(text, errored); };
   rec=r; recBtn=btn; btn&&btn.classList.add('live'); $('#led').classList.add('rec');
-  try{ r.start(); }catch(e){ rec=null; btn&&btn.classList.remove('live'); $('#led').classList.remove('rec'); }
+  try{ r.start(); }catch(e){ rec=null; btn&&btn.classList.remove('live'); $('#led').classList.remove('rec'); LS.srBroken=true; if(CAN_REC && S.gkey) cloudListen(opts); else setTimeout(()=>onEnd&&onEnd('', 'start-failed'),0); }
+}
+function cloudListen({btn, continuous=false, onText, onEnd}){
+  const T={aborted:false, stopped:false, done:false};
+  const ui=on=>{ btn&&btn.classList.toggle('live',on); const l=$('#led'); l&&l.classList.toggle('rec',on); };
+  let stream=null, mr=null, chunks=[], ac=null, an=null, iv=null, mime='';
+  const t0=Date.now(); let spoke=false, lastLoud=0, noise=0.01;
+  const me={cloud:true, stop(){ T.stopped=true; finish(); }, abort(){ T.aborted=true; T.stopped=true; finish(); }};
+  rec=me; recBtn=btn; ui(true);
+  const cleanup=()=>{ clearInterval(iv); try{ stream&&stream.getTracks().forEach(t=>t.stop()); }catch(e){} try{ ac&&ac.close(); }catch(e){} };
+  function finish(){
+    if(T.done) return; T.done=true;
+    if(rec===me) rec=null; ui(false);
+    if(!mr || mr.state==='inactive'){ cleanup(); if(!T.aborted && mr) onEnd&&onEnd('', 'no-speech'); return; }   // still waiting for permission: handled below
+    if(T.aborted){ mr.onstop=cleanup; try{ mr.stop(); }catch(e){ cleanup(); } return; }
+    LS.pending++; btn&&btn.classList.add('busy');
+    mr.onstop=async()=>{
+      cleanup();
+      let text='', err='';
+      try{
+        if(an && !spoke) err='no-speech';
+        else text=await transcribe(new Blob(chunks,{type:mr.mimeType||mime||'audio/webm'}));
+      }catch(e){ err='transcribe'; toast(e && e.code ? errText(e) : 'تعذّر التعرف على الكلام. حاول مرة أخرى.'); }
+      finally{ LS.pending--; btn&&btn.classList.remove('busy'); }
+      if(text) onText&&onText(text);
+      onEnd&&onEnd(text, text?'':(err||'no-speech'));
+    };
+    try{ mr.stop(); }catch(e){ LS.pending--; cleanup(); onEnd&&onEnd('', 'rec-failed'); }
+  }
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}}).then(s=>{
+    stream=s;
+    if(T.stopped){ cleanup(); if(!T.aborted) onEnd&&onEnd('', 'no-speech'); return; }
+    mime=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'].find(m=>{ try{ return MediaRecorder.isTypeSupported(m); }catch(e){ return false; } })||'';
+    try{ mr=new MediaRecorder(stream, mime?{mimeType:mime}:undefined); }catch(e){ mr=new MediaRecorder(stream); }
+    mr.ondataavailable=e=>{ if(e.data && e.data.size) chunks.push(e.data); };
+    try{ const AC=window.AudioContext||window.webkitAudioContext; ac=new AC(); const src=ac.createMediaStreamSource(stream); an=ac.createAnalyser(); an.fftSize=1024; src.connect(an); }catch(e){ an=null; }
+    const buf=new Float32Array(1024);
+    mr.start(250);
+    iv=setInterval(()=>{
+      if(T.done) return;
+      const now=Date.now();
+      if(an){
+        an.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i]; const rms=Math.sqrt(s/buf.length);
+        // background level follows the quiet moments, so speaking right away is not mistaken for noise
+        noise = rms<noise ? Math.max(0.002, noise*0.7+rms*0.3) : Math.min(0.05, noise*0.995+rms*0.005);
+        if(rms>Math.max(0.018, noise*3)){ spoke=true; lastLoud=now; }
+        if(!continuous){ if(spoke && now-lastLoud>1400) return finish(); if(!spoke && now-t0>8000) return finish(); }
+      }
+      if(now-t0 > (continuous?180000:20000)) finish();
+    }, 50);
+  }).catch(()=>{
+    if(rec===me) rec=null; ui(false); T.done=true;
+    if(!T.aborted){ toast('اسمح باستخدام الميكروفون من إعدادات المتصفح.'); onEnd&&onEnd('', 'not-allowed'); }
+  });
+}
+async function toWav16k(blob){
+  const AC=window.AudioContext||window.webkitAudioContext, OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+  const ab=await blob.arrayBuffer(), ac=new AC();
+  const decoded=await new Promise((res,rej)=>{ const p=ac.decodeAudioData(ab, res, rej); if(p && p.then) p.then(res, rej); });
+  try{ ac.close(); }catch(e){}
+  const len=Math.max(1, Math.ceil(decoded.duration*16000)), off=new OAC(1, len, 16000), src=off.createBufferSource();
+  src.buffer=decoded; src.connect(off.destination); src.start(0);
+  const out=await new Promise((res,rej)=>{ off.oncomplete=e=>res(e.renderedBuffer); const p=off.startRendering(); if(p && p.then) p.then(res, rej); });
+  const ch=out.getChannelData(0), pcm=new Int16Array(ch.length);
+  for(let i=0;i<ch.length;i++){ const v=Math.max(-1, Math.min(1, ch[i])); pcm[i]=v<0?v*32768:v*32767; }
+  return makeWav(pcm, 16000);
+}
+const blobB64 = b => new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]||''); r.onerror=rej; r.readAsDataURL(b); });
+async function transcribe(blob, model){
+  let audio=blob;
+  try{ audio=await toWav16k(blob); }catch(e){ audio=blob; }
+  const data64=await blobB64(audio);
+  model = model || S.gmodel || 'gemini-flash-latest';
+  let res;
+  try{
+    res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent', {method:'POST', headers:{'content-type':'application/json','x-goog-api-key':S.gkey},
+      body:JSON.stringify({contents:[{role:'user', parts:[
+        {text:'Transcribe the speech in this audio exactly as spoken. The speaker is an Arabic speaker (adult or child) practising English. Write only the words they actually said, in English. Keep their grammar mistakes and wrong words exactly as said: do not correct, translate, explain or add anything. If there is no clear speech, use an empty string. Reply with only JSON: {"text": "..."}'},
+        {inlineData:{mimeType:(audio.type||'audio/wav').split(';')[0], data:data64}}]}],
+        generationConfig:{responseMimeType:'application/json', temperature:0, maxOutputTokens:2048}})});
+  }catch(e){ throw {code:'net'}; }
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok){
+    if(res.status===404 && model!=='gemini-3.5-flash') return transcribe(blob, 'gemini-3.5-flash');
+    const msg=(data?.error?.message||'')+' '+(data?.error?.status||'');
+    throw {code: /API_KEY_INVALID|API key not valid/i.test(msg) ? 401 : res.status, msg};
+  }
+  const text=((data.candidates||[])[0]?.content?.parts||[]).filter(p=>!p.thought && p.text).map(p=>p.text).join('');
+  try{ return String(parseJSON(text).text||'').trim(); }catch(e){ return text.replace(/[{}"]/g,'').replace(/^text:\s*/i,'').trim(); }
 }
 
 /* ---------- Claude API ---------- */
@@ -868,7 +1135,7 @@ function buildScenes(){ const el=$('#scenes'); el.innerHTML='';
     b.onclick=()=>{ scene=s; $$('#scenes .chip').forEach(x=>x.setAttribute('aria-pressed', x===b)); resetChat(); }; el.append(b); }); }
 
 function resetChat(){
-  stopListening(true); if(TTS) speechSynthesis.cancel();
+  stopListening(true); stopSpeaking(true);
   turns=[]; const log=$('#log'); log.innerHTML='';
   const e=document.createElement('div'); e.className='empty';
   if(!hasKey()){
@@ -998,6 +1265,7 @@ const TOPICS=[
  ['Introduce yourself to a new colleague at a conference.',['Hi, I\'m…','I work on…','What brings you here?']],
  ['Summarise your latest research in simple words.',['My research looks at…','We found that…','This matters because…']],
 ];
+TALKIE_PHRASES.push(()=>[...BANK.beg, ...BANK.mid, ...BANK.adv].map(x=>x[1]).concat(TOPICS.map(t=>t[0]), ["Hi, I'm Sam. Let's practice English together!", 'Hello! Can you hear me?']));
 let topicIdx=-1, tmr=null, left=60, talkBase='';
 function spin(){ stopTopic(); let k; do{ k=Math.random()*TOPICS.length|0; }while(k===topicIdx && TOPICS.length>1); topicIdx=k;
   $('#topic').textContent=TOPICS[k][0]; $('#starters').innerHTML=TOPICS[k][1].map(s=>'<span>'+esc(s)+'</span>').join('');
@@ -1014,7 +1282,7 @@ $('#go').onclick=()=>{
   talkBase=$('#talk').value.trim();
   $('#go').textContent='إيقاف'; topicListen();
   tmr=setInterval(()=>{ left--; drawClock();
-    if(left<=0){ stopTopic(); award(15,'One minute!'); setTimeout(()=>{ if($('#talk').value.trim().split(/\s+/).length>=5 && hasKey()) rate(); }, 900); } },1000);
+    if(left<=0){ stopTopic(); award(15,'One minute!'); listenIdle().then(()=>setTimeout(()=>{ if($('#talk').value.trim().split(/\s+/).length>=5 && hasKey()) rate(); }, 300)); } },1000);
 };
 $('#spin').onclick=spin;
 $('#topic').onclick=()=>speak($('#topic').textContent);
@@ -1076,6 +1344,35 @@ $('#model').onchange=()=>{ if(S.provider==='gemini') S.gmodel=$('#model').value;
 $('#voice').onchange=()=>{ S.voice=$('#voice').value; saveS(); };
 $('#rate-sl').oninput=()=>{ S.rate=Number($('#rate-sl').value); saveS(); };
 $('#test-voice').onclick=()=>speak("Hi, I'm Sam. Let's practice English together!");
+$('#vsrc').value=S.voiceSrc||'auto'; $('#msrc').value=S.micSrc||'auto';
+$('#vsrc').onchange=()=>{ S.voiceSrc=$('#vsrc').value; saveS(); speak("Hi, I'm Sam. Let's practice English together!"); };
+$('#msrc').onchange=()=>{ S.micSrc=$('#msrc').value; saveS(); if(S.micSrc==='cloud' && !S.gkey) toast('أضف مفتاح Gemini أولًا ليعمل هذا الخيار.'); };
+$('#dl-audio').onclick=async()=>{
+  const b=$('#dl-audio'); if(b.disabled) return;
+  if(!VO.clipsReady){ toast('انتظر لحظة ثم حاول مرة أخرى'); return; }
+  const ids=[...new Set([...Object.values(VO.clips), ...Object.values(VO.exact)])]; let done=0, fail=0; b.disabled=true;
+  const worker=async()=>{ while(ids.length){ const id=ids.pop(); try{ const r=await fetch('audio/'+id+'.mp3'); if(!r.ok) fail++; }catch(e){ fail++; } done++; if(done%20===0) b.textContent='⬇️ جارٍ التنزيل… '+done; } };
+  await Promise.all([worker(),worker(),worker(),worker(),worker(),worker()]);
+  b.disabled=false; b.textContent = fail ? '⬇️ اكتمل مع '+fail+' خطأ، اضغط للمحاولة مرة أخرى' : '✓ الأصوات محفوظة على هذا الجهاز';
+};
+$('#diag').onclick=()=>{
+  const out=$('#diag-out'); out.hidden=false;
+  const ua=navigator.userAgent, huawei=/HUAWEI|HarmonyOS|OpenHarmony|HuaweiBrowser|HMSCore|ArkWeb/i.test(ua);
+  const rows=[
+    ['الجهاز', huawei?'هواوي / HarmonyOS':(/iPhone|iPad/.test(ua)?'iPhone / iPad':(/Android/.test(ua)?'Android':'آخر'))],
+    ['أصوات إنجليزية في الجهاز', TTS ? String(voices.length) : 'غير مدعوم'],
+    ['تسجيلات Talkie', VO.clipsReady ? Object.keys(VO.clips).length+Object.keys(VO.exact).length+' جملة' : 'لم تُحمّل بعد'],
+    ['التعرف على الكلام', {native:'من الجهاز', cloud:'عبر Gemini', none:'غير متاح: أضف مفتاح Gemini'}[listenMode()]],
+    ['مفتاح Gemini', S.gkey ? 'موجود' : 'غير موجود']];
+  out.innerHTML=rows.map(([k,v])=>'<div><span>'+k+'</span><b>'+esc(v)+'</b></div>').join('')+'<div><span>الصوت المستخدم الآن</span><b id="diag-eng">…</b></div><div><span>تجربة الميكروفون</span><b id="diag-mic">…</b></div>';
+  speak('Hello! Can you hear me?', null, ()=>{
+    const e=$('#diag-eng'); if(e) e.textContent={device:'صوت الجهاز', clips:'تسجيلات Talkie', gemini:'صوت Gemini'}[VO.last]||'لم يعمل';
+    const m=$('#diag-mic'); if(!m) return;
+    if(!canListen()){ m.textContent='غير متاح: أضف مفتاح Gemini'; return; }
+    m.textContent='قل: Hello Sam';
+    listen({onEnd:(t,err)=>{ const m2=$('#diag-mic'); if(m2) m2.textContent = t ? 'سمعتك: «'+t+'» ✓' : (err==='not-allowed'?'لم يُسمح بالميكروفون':'لم أسمع شيئًا'); }});
+  });
+};
 const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 if(standalone) $('#install-card').hidden=true;
 
@@ -1083,7 +1380,7 @@ if(standalone) $('#install-card').hidden=true;
 let current='chat', lastTab='chat';
 const TAB_OF = {say:'practice', topic:'practice', mistakes:'practice', coach:'practice', dict:'practice', sounds:'practice', shadow:'practice', league:'practice', call:'chat', parent:'set'};
 function show(v){
-  stopTopic(); stopListening(true); if(TTS) speechSynthesis.cancel(); window.kidsStop&&window.kidsStop();
+  stopTopic(); stopListening(true); stopSpeaking(true); window.kidsStop&&window.kidsStop();
   if(v==='kids' && current!=='kids' && window.kidsHome) window.kidsHome();
   current=v; if(v!=='set'){ lastTab=v; store.set('talkie-tab', v); }
   const tab = TAB_OF[v] || v;
@@ -1096,9 +1393,9 @@ $$('nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
 document.addEventListener('click', e=>{ if(e.target.closest('[data-back]')) show('practice'); });
 $('#gear').onclick=()=>show(current==='set'?lastTab:'set');
 $('#back').onclick=()=>show(lastTab);
-document.addEventListener('visibilitychange',()=>{ if(document.hidden){ stopListening(true); if(TTS) speechSynthesis.cancel(); } });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){ stopListening(true); stopSpeaking(true); } });
 
-if(!SR) $('#chat-hint').textContent='هذا المتصفح لا يدعم الميكروفون. افتح التطبيق في Safari (iPhone) أو Chrome (Android).';
+if(!canListen()) $('#chat-hint').textContent = CAN_REC ? 'لتفعيل الميكروفون في هذا الجهاز أضف مفتاح Gemini المجاني من الإعدادات ⚙️، أو اكتب رسالتك.' : 'هذا المتصفح لا يدعم الميكروفون. يمكنك كتابة رسالتك.';
 
 buildScenes(); resetChat(); newDeck(); spin();
 const savedTab = store.get('talkie-tab', null);

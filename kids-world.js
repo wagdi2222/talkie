@@ -239,7 +239,7 @@ function sing(c){
   let i=0, alive=true, timer=null, round=1;
   body.innerHTML='<div class="ch-box">'+c.lines.map(([l,e],k)=>'<div class="ch-line" data-k="'+k+'"><span class="ch-e">'+e+'</span><span class="ch-t">'+esc(l)+'</span></div>').join('')+'</div>'+
     '<div class="ch-turn" id="ch-turn">استعد…</div><div class="k-row"><button class="k-btn" id="ch-go">▶ ابدأ</button><button class="k-btn ghost" id="ch-stop">إيقاف</button></div>';
-  const stop=()=>{ alive=false; clearTimeout(timer); beat(false); try{ speechSynthesis.cancel(); }catch(e){} };
+  const stop=()=>{ alive=false; clearTimeout(timer); beat(false); stopSpeaking(true); };
   A.setCleanup(stop);
   const mark=(k,cls)=>body.querySelectorAll('.ch-line').forEach((el,j)=>{ el.classList.toggle('listen', j===k && cls==='listen'); el.classList.toggle('turn', j===k && cls==='turn'); el.classList.toggle('sung', j<k); });
   const step=()=>{
@@ -262,6 +262,16 @@ function sing(c){
   body.querySelector('#ch-stop').onclick=()=>{ stop(); body.querySelector('#ch-turn').textContent='توقفت الأنشودة'; i=0; };
 }
 
+TALKIE_PHRASES.push(()=>{
+  const out=[], nm='Nouri';
+  PHRASES.forEach(p=>out.push(p.replace('NAME', nm)));
+  out.push(nm+' is full. Come back tomorrow!', 'Play a game and get three stars first!', 'Hello! My name is '+nm+'!');
+  cat('food').items.forEach(f=>out.push('Yummy! '+nm+' eats '+(/^[aeiou]/.test(f.en)?'an ':'a ')+f.en+'! Thank you!'));
+  HUNT.forEach(([p,en])=>out.push('Find '+en+'! Go, go, go!', 'Find '+en+'!'));
+  out.push('Great! What is it? Say it in English!', "Time's up! Let's try another one.");
+  CHANTS.forEach(c=>c.lines.forEach(([l])=>out.push(l)));
+  return out;
+});
 /* ================= wiring into the kids home ================= */
 window.KIDS_TOP = [{html:petHTML, wire:wirePet},
   {html:()=>'<button class="map-cta" id="map-cta"><span>🗺️</span><div><b>خريطة المغامرة</b><em>المحطة '+Math.min(unlockedUpTo()+1, STATIONS.length)+' من '+STATIONS.length+'</em></div><span class="map-cta-go">←</span></button>', wire:r=>{ const b=r.querySelector('#map-cta'); if(b) b.onclick=map; }}
